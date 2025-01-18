@@ -1,0 +1,81 @@
+[window]
+decorations = "none"
+dynamic_title = true
+opacity = 1
+option_as_alt = "Both"
+startup_mode = "Maximized"
+
+[window.padding]
+x = 10
+y = 10
+
+[terminal]
+
+[env]
+TERM = "alacritty"
+
+[cursor]
+style = "Block"
+unfocused_hollow = true
+
+[terminal.shell]
+args = ["--login"]
+program = "/bin/zsh"
+
+[mouse]
+hide_when_typing = false
+
+[[mouse.bindings]]
+action = "PasteSelection"
+mouse = "Middle"
+
+[font]
+size = 15.0
+
+[font.bold]
+family = "JetBrains Mono"
+style = "Bold"
+
+[font.normal]
+family = "JetBrains Mono"
+style = "Regular"
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[selection]
+save_to_clipboard = false
+semantic_escape_chars = ''',│`|:"' ()[]{}<>'''
+
+[keyboard]
+
+[[keyboard.bindings]]
+chars = "\u001BB"
+key = "Left"
+mods = "Alt"
+
+[[keyboard.bindings]]
+action = "Paste"
+key = "V"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "Copy"
+key = "C"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "Quit"
+key = "Q"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "ToggleFullscreen"
+key = "Return"
+mods = "Command"
+
+[[keyboard.bindings]]
+chars = "\u001BF"
+key = "Right"
+mods = "Alt"
