@@ -10,11 +10,6 @@ vim.opt.smartindent = true
 
 vim.opt.mouse = 'a' -- enable mouse mode
 
--- sync clipboard between OS and Neovim
-vim.schedule(function()
-  vim.opt.clipboard = 'unnamedplus'
-end)
-
 vim.opt.breakindent = true -- enable break indent
 
 vim.opt.undofile = true -- save undo history
