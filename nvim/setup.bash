@@ -1,2 +1,2 @@
 rm -vrf ~/.config/nvim
-ln -sv ${PWD} ~/.config/nvim
+ln -sv ${PWD}/nvim ~/.config/nvim
