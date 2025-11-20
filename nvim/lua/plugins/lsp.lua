@@ -28,18 +28,39 @@ return {
 			-- Setup LSP servers using the new vim.lsp.config API (Neovim 0.11+)
 			vim.lsp.config.lua_ls = {
 				cmd = { "lua-language-server" },
+				filetypes = { "lua" },
 				root_markers = { ".git" },
 				settings = {
 					Lua = {
 						diagnostics = {
 							globals = { "vim" }, -- Recognize 'vim' as a global
 						},
+						runtime = {
+							version = "LuaJIT",
+						},
 					},
 				},
 			}
 
-			-- Enable the LSP server
+			vim.lsp.config.bashls = {
+				cmd = { "bash-language-server", "start" },
+				filetypes = { "sh", "bash" },
+				root_markers = { ".git" },
+				settings = {
+					bashIde = {
+						-- Pattern for files to analyze
+						globPattern = "*@(.sh|.inc|.bash|.command)",
+						-- Enable shellcheck for diagnostics
+						shellcheckPath = "shellcheck",
+						shellcheckArguments = "",
+					},
+				},
+			}
+
+			-- Enable the LSP servers
 			vim.lsp.enable("lua_ls")
-		end
-	}
+			vim.lsp.enable("bashls")
+			vim.lsp.enable("basedpyright")
+		end,
+	},
 }

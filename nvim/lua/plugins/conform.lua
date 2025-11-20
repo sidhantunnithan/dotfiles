@@ -1,8 +1,18 @@
 return {
 	{
-		'stevearc/conform.nvim',
+		"stevearc/conform.nvim",
 		event = { "BufWritePre" },
 		cmd = { "ConformInfo" },
+		keys = {
+			{
+				"<leader>f",
+				function()
+					require("conform").format({ async = false, lsp_format = "fallback" })
+				end,
+				mode = "n",
+				desc = "Format file with conform",
+			},
+		},
 		config = function()
 			require("conform").setup({
 				formatters_by_ft = {
@@ -13,11 +23,6 @@ return {
 					javascript = { "prettierd", "prettier", stop_after_first = true },
 				},
 			})
-
-			-- Keymap for formatting with conform
-			vim.keymap.set("n", "<leader>f", function()
-				require("conform").format({ async = false, lsp_format = "fallback" })
-			end, { desc = "Format file with conform" })
-		end
-	}
+		end,
+	},
 }
