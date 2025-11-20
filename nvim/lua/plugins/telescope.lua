@@ -29,6 +29,33 @@ return {
 			-- Close telescope
 			actions.close(prompt_bufnr)
 
+			-- Check if current buffer is empty or replaceable
+			local current_buf = vim.api.nvim_get_current_buf()
+			local bufname = vim.fn.bufname(current_buf)
+			local buftype = vim.bo[current_buf].buftype
+			local is_directory = vim.fn.isdirectory(bufname) == 1
+			local is_modified = vim.bo[current_buf].modified
+			local line_count = vim.api.nvim_buf_line_count(current_buf)
+
+			-- Buffer is empty if:
+			-- 1. Not modified AND
+			-- 2. (Has no name OR is a directory OR is special buffer) AND
+			-- 3. Has only empty lines
+			local is_empty = false
+			if not is_modified then
+				if bufname == "" or is_directory or buftype ~= "" then
+					-- Check if buffer only has empty content
+					local all_empty = true
+					for i = 1, line_count do
+						if vim.fn.getline(i) ~= "" then
+							all_empty = false
+							break
+						end
+					end
+					is_empty = all_empty
+				end
+			end
+
 			-- Check if file is already open in any tab
 			local found_tab = nil
 			local found_win = nil
@@ -52,6 +79,9 @@ return {
 				-- Switch to the existing tab and window
 				vim.cmd(found_tab .. "tabnext")
 				vim.cmd(found_win .. "wincmd w")
+			elseif is_empty then
+				-- Open in current buffer if it's empty
+				vim.cmd("edit " .. vim.fn.fnameescape(filepath))
 			else
 				-- Open in a new tab
 				vim.cmd("tabnew " .. vim.fn.fnameescape(filepath))
@@ -66,8 +96,8 @@ return {
 				},
 				i = {
 					["<CR>"] = open_or_switch_to_tab,
-				}
-			}
+				},
+			},
 		}
 
 		require("telescope").setup({
