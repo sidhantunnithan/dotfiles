@@ -18,7 +18,7 @@ return {
 		})
 		local registry = require("mason-registry")
 		registry.refresh(function()
-			for _, pkg_name in ipairs({ "basedpyright", "black" }) do
+			for _, pkg_name in ipairs({ "basedpyright", "black", "prettierd" }) do
 				local pkg = registry.get_package(pkg_name)
 				if not pkg:is_installed() then
 					pkg:install()

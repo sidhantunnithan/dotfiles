@@ -12,6 +12,8 @@ fi
 rm -rf ~/.config/nvim
 ln -s $PWD/nvim ~/.config/nvim
 
+ln -sf $PWD/nvim/.prettierrc ~/.prettierrc
+
 if ! command -v rg &> /dev/null; then
   read -p "ripgrep (rg) is not installed. Install it? [y/N] " answer
   if [[ "$answer" =~ ^[Yy]$ ]]; then
