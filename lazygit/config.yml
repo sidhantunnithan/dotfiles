@@ -1,0 +1,23 @@
+git:
+  pagers:
+    - colorArg: always
+      pager: delta --dark --paging=never --syntax-theme base16-256 -s
+customCommands:
+  - key: "G"
+    command: |
+      git fetch -p && for branch in $(git for-each-ref --format '%(refname) %(upstream:track)' refs/heads | awk '$2 == "[gone]" {sub("refs/heads/", "", $1); print $1}'); do git branch -D $branch; done
+    context: "localBranches"
+    description: "Prune local branches no longer on its remote; (G)one."
+    loadingText: "Pruning gone..."
+  - key: '<c-r>'
+    context: 'tags'
+    command: 'git tag {{.SelectedTag.Name}} -f && git push origin {{.SelectedTag.Name}} -f'
+    output: log
+    description: 'Retag and Push Selected Tag'
+    loadingText: 'Retagging and Pushing Tag'
+  - key: 'p'
+    context: 'tags'
+    command: 'git pull --tags -f'
+    output: log
+    description: 'Pull all tags (clobber existing)'
+    loadingText: 'Pulling Tags'
