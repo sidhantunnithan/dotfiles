@@ -101,6 +101,9 @@ return {
 		}
 
 		require("telescope").setup({
+			defaults = {
+				follow = true,
+			},
 			pickers = {
 				find_files = picker_opts,
 				live_grep = picker_opts,

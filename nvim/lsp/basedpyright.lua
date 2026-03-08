@@ -4,6 +4,34 @@
 ---
 --- `basedpyright`, a static type checker and language server for python
 
+--- Scan venv site-packages for PEP 660 editable installs (setuptools finder style)
+--- and return their source directories so basedpyright can resolve them.
+local function get_editable_extra_paths(root_dir)
+	local paths = {}
+	local site_packages = vim.fn.glob(root_dir .. "/.venv/lib/python*/site-packages", true, true)
+	if #site_packages == 0 then
+		return paths
+	end
+	local sp = site_packages[1]
+	local finders = vim.fn.glob(sp .. "/__editable__*_finder.py", true, true)
+	for _, finder_file in ipairs(finders) do
+		for line in io.lines(finder_file) do
+			if line:match("^MAPPING") then
+				for _, mapped_path in line:gmatch("'([^']+)'%s*:%s*'([^']+)'") do
+					if vim.fn.isdirectory(mapped_path) == 1 then
+						local parent = vim.fn.fnamemodify(mapped_path, ":h")
+						if not vim.tbl_contains(paths, parent) then
+							table.insert(paths, parent)
+						end
+					end
+				end
+				break
+			end
+		end
+	end
+	return paths
+end
+
 local function set_python_path(command)
 	local path = command.args
 	local clients = vim.lsp.get_clients({
@@ -26,15 +54,7 @@ end
 return {
 	cmd = { "basedpyright-langserver", "--stdio" },
 	filetypes = { "python" },
-	root_markers = {
-		"pyrightconfig.json",
-		"pyproject.toml",
-		"setup.py",
-		"setup.cfg",
-		"requirements.txt",
-		"Pipfile",
-		".git",
-	},
+	root_markers = { ".git" },
 	settings = {
 		basedpyright = {
 			analysis = {
@@ -45,6 +65,17 @@ return {
 		},
 	},
 	on_attach = function(client, bufnr)
+		local root_dir = client.config.root_dir
+		local venv = root_dir .. "/.venv/bin/python"
+		if vim.fn.executable(venv) == 1 then
+			local extra_paths = get_editable_extra_paths(root_dir)
+			client.settings = vim.tbl_deep_extend("force", client.settings or client.config.settings, {
+				python = { pythonPath = venv },
+				basedpyright = { analysis = { extraPaths = extra_paths } },
+			})
+			client:notify("workspace/didChangeConfiguration", { settings = nil })
+		end
+
 		vim.api.nvim_buf_create_user_command(bufnr, "LspPyrightOrganizeImports", function()
 			local params = {
 				command = "basedpyright.organizeimports",

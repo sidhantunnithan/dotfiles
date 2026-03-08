@@ -56,6 +56,7 @@ return {
 			vim.keymap.set("n", "L", vsplit_preview, opts("Vsplit Preview"))
 			vim.keymap.set("n", "h", api.node.navigate.parent_close, opts("Close Directory"))
 			vim.keymap.set("n", "H", api.tree.collapse_all, opts("Collapse All"))
+			vim.keymap.set("n", "<C-e>", api.tree.close, opts("Close"))
 		end
 
 		-- floating nvim tree
