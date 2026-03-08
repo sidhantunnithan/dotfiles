@@ -54,7 +54,9 @@ end
 return {
 	cmd = { "basedpyright-langserver", "--stdio" },
 	filetypes = { "python" },
-	root_markers = { ".git" },
+	root_dir = function(bufnr, on_dir)
+		on_dir(vim.fn.getcwd())
+	end,
 	settings = {
 		basedpyright = {
 			analysis = {
@@ -65,10 +67,34 @@ return {
 		},
 	},
 	on_attach = function(client, bufnr)
-		local root_dir = client.config.root_dir
+		local root_dir = client.config.root_dir or vim.fn.getcwd()
 		local venv = root_dir .. "/.venv/bin/python"
 		if vim.fn.executable(venv) == 1 then
 			local extra_paths = get_editable_extra_paths(root_dir)
+
+			-- pyrightconfig.json extraPaths overrides LSP extraPaths, so if it
+			-- exists we must patch it on disk to include editable-install paths.
+			local pyright_cfg = root_dir .. "/pyrightconfig.json"
+			if vim.fn.filereadable(pyright_cfg) == 1 then
+				local ok, config = pcall(vim.fn.json_decode, vim.fn.readfile(pyright_cfg))
+				if ok and config then
+					local existing = config.extraPaths or {}
+					local changed = false
+					for _, p in ipairs(extra_paths) do
+						if not vim.tbl_contains(existing, p) then
+							table.insert(existing, p)
+							changed = true
+						end
+					end
+					if changed then
+						config.extraPaths = existing
+						local json = vim.fn.system({ "python3", "-m", "json.tool" }, vim.fn.json_encode(config))
+						vim.fn.writefile(vim.split(json, "\n", { trimempty = true }), pyright_cfg)
+					end
+					extra_paths = existing
+				end
+			end
+
 			client.settings = vim.tbl_deep_extend("force", client.settings or client.config.settings, {
 				python = { pythonPath = venv },
 				basedpyright = { analysis = { extraPaths = extra_paths } },
