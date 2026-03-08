@@ -1,0 +1,1 @@
+echo "alias lzg=lazygit" >> ~/.zshrc
