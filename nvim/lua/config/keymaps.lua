@@ -27,13 +27,18 @@ vim.keymap.set("n", "<leader>X", function()
   end, vim.api.nvim_list_bufs())
 
   if #modified_bufs > 0 then
-    local choice = vim.fn.confirm("There are unsaved changes. Save all before closing?", "&Yes\n&No\n&Cancel", 1)
+    local choice = vim.fn.confirm("There are unsaved changes. Save all before quitting?", "&Yes\n&No\n&Cancel", 1)
     if choice == 1 then
-      vim.cmd("wa | %bd")
+      vim.cmd("wa | qa")
     elseif choice == 2 then
-      vim.cmd("%bd!")
+      vim.cmd("qa!")
     end
   else
-    vim.cmd("%bd")
+    vim.cmd("qa")
   end
-end, { desc = "Close all buffers" })
+end, { desc = "Quit Neovim" })
+
+vim.keymap.set("n", "<leader>cp", function()
+  vim.fn.setreg("+", vim.fn.expand("%:p"))
+  vim.notify("Copied: " .. vim.fn.expand("%:p"))
+end, { desc = "Copy absolute file path" })

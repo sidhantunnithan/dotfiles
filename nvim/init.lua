@@ -28,7 +28,38 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
 		-- Navigation
 		map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
-		map("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration" })
+		map("n", "gD", function()
+			local params = vim.lsp.util.make_position_params(0)
+			vim.lsp.buf_request(bufnr, "textDocument/definition", params, function(err, result)
+				if err or not result or vim.tbl_isempty(result) then
+					vim.notify("No definition found", vim.log.levels.WARN)
+					return
+				end
+				local def = result[1] or result
+				local uri = def.targetUri or def.uri
+				local range = def.targetSelectionRange or def.targetRange or def.range
+				local filepath = vim.uri_to_fname(uri)
+				local line = range.start.line + 1
+				local col = range.start.character
+
+				-- Check if already open in a tab
+				local abs = vim.fn.fnamemodify(filepath, ":p")
+				for tabnr = 1, vim.fn.tabpagenr("$") do
+					for _, b in ipairs(vim.fn.tabpagebuflist(tabnr)) do
+						if vim.fn.fnamemodify(vim.fn.bufname(b), ":p") == abs then
+							vim.cmd(tabnr .. "tabnext")
+							vim.cmd(":" .. line)
+							vim.cmd("normal! " .. col .. "|")
+							return
+						end
+					end
+				end
+
+				vim.cmd("tabnew " .. vim.fn.fnameescape(filepath))
+				vim.cmd(":" .. line)
+				vim.cmd("normal! " .. col .. "|")
+			end)
+		end, { desc = "Go to definition in new tab" })
 		map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
 		map("n", "go", vim.lsp.buf.type_definition, { desc = "Go to type definition" })
 		map("n", "gr", vim.lsp.buf.references, { desc = "Show references" })
