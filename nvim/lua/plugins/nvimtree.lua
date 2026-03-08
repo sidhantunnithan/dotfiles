@@ -109,6 +109,6 @@ return {
 		})
 
 		-- global toggle keymap
-		vim.api.nvim_set_keymap("n", "<C-h>", ":NvimTreeToggle<cr>", { silent = true, noremap = true })
+		vim.api.nvim_set_keymap("n", "<C-e>", ":NvimTreeToggle<cr>", { silent = true, noremap = true })
 	end,
 }
