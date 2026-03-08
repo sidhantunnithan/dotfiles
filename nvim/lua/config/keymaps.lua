@@ -1,6 +1,7 @@
 vim.g.mapleader = " "
 
 vim.keymap.set("n", "<Tab>", "gt") -- switch tabs
+vim.keymap.set("n", "<C-t>", ":tabnew<cr>", { desc = "New tab" })
 
 -- Using <leader> + number (1, 2, ... 9) to switch tab
 for i = 1, 9, 1 do
@@ -37,6 +38,14 @@ vim.keymap.set("n", "<leader>X", function()
     vim.cmd("qa")
   end
 end, { desc = "Quit Neovim" })
+
+vim.keymap.set("n", "<leader>o", function()
+  local path = vim.fn.input("Open file: ", "", "file")
+  if path ~= "" then
+    path = vim.fn.expand(path)
+    vim.cmd("tabnew " .. vim.fn.fnameescape(path))
+  end
+end, { desc = "Open file by path" })
 
 vim.keymap.set("n", "<leader>cp", function()
   vim.fn.setreg("+", vim.fn.expand("%:p"))
