@@ -1,3 +1,14 @@
+if ! command -v nvim &> /dev/null; then
+  read -p "neovim is not installed. Install it? [y/N] " answer
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+      brew install neovim
+    else
+      sudo apt install -y neovim
+    fi
+  fi
+fi
+
 rm -rf ~/.config/nvim
 ln -s $PWD/nvim ~/.config/nvim
 

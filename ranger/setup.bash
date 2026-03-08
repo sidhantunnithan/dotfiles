@@ -1,3 +1,14 @@
+if ! command -v ranger &> /dev/null; then
+  read -p "ranger is not installed. Install it? [y/N] " answer
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+      brew install ranger
+    else
+      sudo apt install -y ranger
+    fi
+  fi
+fi
+
 mkdir -p ~/.config/ranger
 rm -f ~/.config/ranger/rc.conf
 ln -s $PWD/ranger/rc.conf ~/.config/ranger/rc.conf

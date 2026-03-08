@@ -1,3 +1,14 @@
+if ! command -v tmux &> /dev/null; then
+  read -p "tmux is not installed. Install it? [y/N] " answer
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+      brew install tmux
+    else
+      sudo apt install -y tmux
+    fi
+  fi
+fi
+
 rm -rf ~/.config/tmux/plugins/tpm
 git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
 
