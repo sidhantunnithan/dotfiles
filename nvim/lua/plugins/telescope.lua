@@ -105,8 +105,12 @@ return {
 				follow = true,
 			},
 			pickers = {
-				find_files = picker_opts,
-				live_grep = picker_opts,
+				find_files = vim.tbl_extend("force", picker_opts, {
+					find_command = { "rg", "--files", "--follow", "--hidden", "--glob", "!.git" },
+				}),
+				live_grep = vim.tbl_extend("force", picker_opts, {
+					additional_args = { "--follow" },
+				}),
 			},
 			extensions = {
 				fzf = {
@@ -117,6 +121,8 @@ return {
 				},
 			},
 		})
+
+		require("telescope").load_extension("fzf")
 
 		vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Telescope find files" })
 		vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Telescope live grep" })
