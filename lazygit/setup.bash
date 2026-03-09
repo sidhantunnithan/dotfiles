@@ -22,7 +22,8 @@ if ! command -v lazygit &> /dev/null; then
     brew install lazygit
     log_success "Lazygit installed via Homebrew"
   else
-    echo "Please install lazygit manually: https://github.com/jesseduffield/lazygit#installation"
+    sudo apt install lazygit
+    log_success "Lazygit installed via apt"
   fi
 else
   log_success "Lazygit already installed"
