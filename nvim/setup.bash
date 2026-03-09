@@ -55,14 +55,3 @@ else
   log_success "Ripgrep already installed"
 fi
 
-if ! command -v tree-sitter &> /dev/null; then
-  echo -e "${YELLOW}Tree-sitter not found, installing...${NC}"
-  if [[ "$(uname)" == "Darwin" ]]; then
-    brew install tree-sitter-cli
-  else
-    sudo apt install -y tree-sitter-cli
-  fi
-  log_success "Tree-sitter installed"
-else
-  log_success "Tree-sitter already installed"
-fi
