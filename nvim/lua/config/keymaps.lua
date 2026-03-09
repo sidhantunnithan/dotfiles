@@ -47,7 +47,13 @@ vim.keymap.set("n", "<leader>o", function()
   end
 end, { desc = "Open file by path" })
 
-vim.keymap.set("n", "<leader>cp", function()
+vim.keymap.set("n", "<leader>yp", function()
   vim.fn.setreg("+", vim.fn.expand("%:p"))
   vim.notify("Copied: " .. vim.fn.expand("%:p"))
 end, { desc = "Copy absolute file path" })
+
+vim.keymap.set("n", "<leader>ya", function()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  vim.fn.setreg("+", table.concat(lines, "\n"))
+  vim.notify("Copied file contents")
+end, { desc = "Copy file contents" })
