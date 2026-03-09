@@ -74,7 +74,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		map("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol" })
 
 		-- Formatting
-		if client and client.supports_method("textDocument/formatting") then
+		if client and client:supports_method("textDocument/formatting") then
 			map("n", "<leader>f", function()
 				vim.lsp.buf.format({ async = true })
 			end, { desc = "Format buffer" })
@@ -100,7 +100,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		end, { desc = "List workspace folders" })
 
 		-- Enable inlay hints if supported
-		if client and client.supports_method("textDocument/inlayHint") then
+		if client and client:supports_method("textDocument/inlayHint") then
 			vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 		end
 
