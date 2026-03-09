@@ -35,24 +35,12 @@ return {
 			local buftype = vim.bo[current_buf].buftype
 			local is_directory = vim.fn.isdirectory(bufname) == 1
 			local is_modified = vim.bo[current_buf].modified
-			local line_count = vim.api.nvim_buf_line_count(current_buf)
 
-			-- Buffer is empty if:
-			-- 1. Not modified AND
-			-- 2. (Has no name OR is a directory OR is special buffer) AND
-			-- 3. Has only empty lines
 			local is_empty = false
 			if not is_modified then
 				if bufname == "" or is_directory or buftype ~= "" then
-					-- Check if buffer only has empty content
-					local all_empty = true
-					for i = 1, line_count do
-						if vim.fn.getline(i) ~= "" then
-							all_empty = false
-							break
-						end
-					end
-					is_empty = all_empty
+					local lines = vim.api.nvim_buf_get_lines(current_buf, 0, -1, false)
+					is_empty = #lines == 1 and lines[1] == ""
 				end
 			end
 
@@ -63,8 +51,7 @@ return {
 			for tabnr = 1, vim.fn.tabpagenr("$") do
 				local wins = vim.fn.tabpagebuflist(tabnr)
 				for winnr, bufnr in ipairs(wins) do
-					local bufpath = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ":p")
-					if bufpath == filepath then
+					if vim.api.nvim_buf_get_name(bufnr) == filepath then
 						found_tab = tabnr
 						found_win = winnr
 						break
@@ -105,47 +92,32 @@ return {
 				follow = true,
 			},
 			pickers = {
-				find_files = vim.tbl_extend("force", picker_opts, {
-					find_command = { "rg", "--files", "--follow", "--hidden", "--glob", "!.git" },
-				}),
-				live_grep = vim.tbl_extend("force", picker_opts, {
-					additional_args = {
-				"--follow",
-				"--glob", "!.git",
-				"--glob", "!.venv",
-				"--glob", "!venv",
-				"--glob", "!env",
-				"--glob", "!node_modules",
-				"--glob", "!__pycache__",
-				"--glob", "!.pytest_cache",
-				"--glob", "!.mypy_cache",
-				"--glob", "!.tox",
-				"--glob", "!dist",
-				"--glob", "!build",
-				"--glob", "!.egg-info",
-				"--glob", "!.coverage",
-				"--glob", "!target",
-				"--glob", "!.next",
-				"--glob", "!.nuxt",
-				"--glob", "!vendor",
-				"--glob", "!.idea",
-			},
-				}),
+				find_files = picker_opts,
+				live_grep = picker_opts,
 			},
 			extensions = {
 				fzf = {
 					fuzzy = true,
 					override_generic_sorter = true,
 					override_file_sorter = true,
-					case_mode = "smart_case", -- or "ignore_case" or "respect_case"
+					case_mode = "smart_case",
 				},
 			},
 		})
 
 		require("telescope").load_extension("fzf")
 
-		vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Telescope find files" })
-		vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Telescope live grep" })
+		vim.keymap.set("n", "<leader>ff", function()
+			builtin.find_files({ find_command = { "rg", "--files", "--follow", "--hidden" } })
+		end, { desc = "Telescope find files" })
+		vim.keymap.set("n", "<leader>fg", function()
+			builtin.live_grep({
+				vimgrep_arguments = {
+					"rg", "--color=never", "--no-heading", "--with-filename",
+					"--line-number", "--column", "--smart-case", "--hidden", "--follow",
+				},
+			})
+		end, { desc = "Telescope live grep" })
 		vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
 		vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Telescope help tags" })
 	end,
