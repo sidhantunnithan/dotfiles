@@ -16,3 +16,5 @@ git clone -b v2.1.2 https://github.com/catppuccin/tmux.git ~/.config/tmux/plugin
 
 DOTFILES_RAW="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main"
 curl -fsSL "$DOTFILES_RAW/tmux/.tmux.conf" -o ~/.tmux.conf
+
+tmux source-file ~/.tmux.conf
