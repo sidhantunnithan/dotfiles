@@ -15,15 +15,19 @@ vim.opt.smartindent = true -- try to be smart (increase the indenting level afte
 vim.opt.signcolumn = "yes" -- try to be smart (increase the indenting level after ‘{’ decrease it after ‘}’, and so on)
 vim.opt.hlsearch = false -- disable highlights results from your previous search
 
--- OSC 52 clipboard: works over SSH through tmux
-vim.g.clipboard = {
-  name = 'OSC 52',
-  copy = {
-    ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
-    ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
-  },
-  paste = {
-    ['+'] = require('vim.ui.clipboard.osc52').paste('+'),
-    ['*'] = require('vim.ui.clipboard.osc52').paste('*'),
-  },
-}
+-- Clipboard: use OSC 52 explicitly so it works over SSH through tmux.
+-- On local (macOS), SSH_TTY is unset so we skip OSC 52 and let nvim use pbcopy via unnamedplus.
+if vim.env.SSH_TTY ~= nil then
+  vim.g.clipboard = {
+    name = 'OSC 52',
+    copy = {
+      ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
+      ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
+    },
+    paste = {
+      ['+'] = require('vim.ui.clipboard.osc52').paste('+'),
+      ['*'] = require('vim.ui.clipboard.osc52').paste('*'),
+    },
+  }
+end
+vim.opt.clipboard = 'unnamedplus'
