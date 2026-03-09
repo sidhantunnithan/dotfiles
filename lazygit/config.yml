@@ -1,6 +1,7 @@
 git:
-  paging:
-    pager: ""
+  pagers:
+    - pager: ""
+  prune: true
 customCommands:
   - key: "G"
     command: |
@@ -16,7 +17,7 @@ customCommands:
     loadingText: 'Retagging and Pushing Tag'
   - key: 'p'
     context: 'tags'
-    command: 'git pull --tags -f'
+    command: 'git fetch origin --tags --prune-tags -f'
     output: log
-    description: 'Pull all tags (clobber existing)'
-    loadingText: 'Pulling Tags'
+    description: 'Pull all tags and prune gone ones (clobber existing)'
+    loadingText: 'Pulling and Pruning Tags'
