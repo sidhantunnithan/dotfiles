@@ -1,8 +1,10 @@
 if ! command -v brew &> /dev/null; then
-  read -p "Homebrew is not installed. Install it? [y/N] " answer
-  if [[ "$answer" =~ ^[Yy]$ ]]; then
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  fi
+  echo "Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-brew bundle --file=$PWD/brew/Brewfile
+DOTFILES_RAW="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main"
+BREWFILE_TMP=$(mktemp)
+curl -fsSL "$DOTFILES_RAW/brew/Brewfile" -o "$BREWFILE_TMP"
+brew bundle --file="$BREWFILE_TMP"
+rm -f "$BREWFILE_TMP"

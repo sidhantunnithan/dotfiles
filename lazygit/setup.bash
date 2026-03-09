@@ -1,11 +1,9 @@
 if ! command -v lazygit &> /dev/null; then
-  read -p "lazygit is not installed. Install it? [y/N] " answer
-  if [[ "$answer" =~ ^[Yy]$ ]]; then
-    if [[ "$(uname)" == "Darwin" ]]; then
-      brew install lazygit
-    else
-      echo "Please install lazygit manually: https://github.com/jesseduffield/lazygit#installation"
-    fi
+  echo "Installing lazygit..."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    brew install lazygit
+  else
+    echo "Please install lazygit manually: https://github.com/jesseduffield/lazygit#installation"
   fi
 fi
 
@@ -15,8 +13,8 @@ else
   CONFIG_DIR=~/.config/lazygit
 fi
 
+DOTFILES_RAW="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main"
 mkdir -p "$CONFIG_DIR"
-rm -f "$CONFIG_DIR/config.yml"
-ln -s $PWD/lazygit/config.yml "$CONFIG_DIR/config.yml"
+curl -fsSL "$DOTFILES_RAW/lazygit/config.yml" -o "$CONFIG_DIR/config.yml"
 
 echo "alias lzg=lazygit" >> ~/.zshrc

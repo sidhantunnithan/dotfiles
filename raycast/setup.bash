@@ -1,9 +1,7 @@
 if ! command -v raycast &> /dev/null && [[ "$(uname)" == "Darwin" ]]; then
-  read -p "Raycast is not installed. Install it? [y/N] " answer
-  if [[ "$answer" =~ ^[Yy]$ ]]; then
-    brew install --cask raycast
-  fi
+  echo "Installing Raycast..."
+  brew install --cask raycast
 fi
 
 echo "Import Raycast settings manually: open Raycast > Settings > Advanced > Import"
-echo "Config file: $PWD/raycast/$(ls raycast/*.rayconfig)"
+echo "Download config from: https://github.com/sidhantunnithan/dotfiles/tree/main/raycast"

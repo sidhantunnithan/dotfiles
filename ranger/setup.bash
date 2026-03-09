@@ -1,17 +1,15 @@
 if ! command -v ranger &> /dev/null; then
-  read -p "ranger is not installed. Install it? [y/N] " answer
-  if [[ "$answer" =~ ^[Yy]$ ]]; then
-    if [[ "$(uname)" == "Darwin" ]]; then
-      brew install ranger
-    else
-      sudo apt install -y ranger
-    fi
+  echo "Installing ranger..."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    brew install ranger
+  else
+    sudo apt install -y ranger
   fi
 fi
 
+DOTFILES_RAW="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main"
 mkdir -p ~/.config/ranger
-rm -f ~/.config/ranger/rc.conf
-ln -s $PWD/ranger/rc.conf ~/.config/ranger/rc.conf
+curl -fsSL "$DOTFILES_RAW/ranger/rc.conf" -o ~/.config/ranger/rc.conf
 
 EDITOR_BLOCK='
 if command -v nvim &> /dev/null; then
