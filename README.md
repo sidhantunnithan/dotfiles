@@ -34,6 +34,12 @@ curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/tmux/
 curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/lazygit/setup.bash | bash
 ```
 
+### lazydocker
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/lazydocker/setup.bash | bash
+```
+
 ### ranger
 
 ```bash
