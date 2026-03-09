@@ -1,0 +1,12 @@
+gui:
+    scrollHeight: 12
+    screenMode: "half"
+    expandFocusedSidePanel: true
+
+logs:
+    since: '' # set to '' to show all logs
+    tail: '100' # set to 200 to show last 200 lines of logs
+
+commandTemplates:
+    serviceLogs: '{{ .DockerCompose }} logs --tail=500 --follow {{ .Service.Name }}'
+    allLogs: '{{ .DockerCompose }} logs --tail=500 --follow'
