@@ -16,16 +16,32 @@ log_success() {
 }
 
 log_section "Installing Neovim"
-if ! command -v nvim &> /dev/null; then
-  echo -e "${YELLOW}Neovim not found, installing...${NC}"
-  if [[ "$(uname)" == "Darwin" ]]; then
+if [[ "$(uname)" == "Darwin" ]]; then
+  if ! command -v nvim &> /dev/null; then
+    echo -e "${YELLOW}Neovim not found, installing...${NC}"
     brew install neovim
+    log_success "Neovim installed"
   else
-    sudo apt install -y neovim
+    log_success "Neovim already installed"
   fi
-  log_success "Neovim installed"
 else
-  log_success "Neovim already installed"
+  # Linux: download latest release
+  echo -e "${YELLOW}Setting up Neovim from latest release...${NC}"
+  cd /tmp
+  curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+  sudo rm -rf /opt/nvim-linux-x86_64
+  sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+  rm nvim-linux-x86_64.tar.gz
+  cd -
+  log_success "Neovim installed from latest release"
+
+  # Add to PATH in bashrc if not already present
+  if ! grep -q 'export PATH=.*nvim-linux-x86_64/bin' ~/.bashrc; then
+    echo 'export PATH="$PATH:/opt/nvim-linux-x86_64/bin"' >> ~/.bashrc
+    log_success "Neovim PATH added to ~/.bashrc"
+  else
+    log_success "Neovim PATH already in ~/.bashrc"
+  fi
 fi
 
 log_section "Configuring Neovim"
