@@ -37,6 +37,12 @@ mkdir -p "$CONFIG_DIR"
 curl -fsSL "$DOTFILES_RAW/lazydocker/config.yml" -o "$CONFIG_DIR/config.yml"
 log_success "Lazydocker configuration file downloaded"
 
-log_section "Setting up Zsh alias"
-echo "alias lzd=lazydocker" >> ~/.zshrc
-log_success "Zsh alias added"
+log_section "Setting up shell alias"
+if [ -f ~/.zshrc ]; then
+  echo "alias lzd=lazydocker" >> ~/.zshrc
+  log_success "Zsh alias added"
+fi
+if [ -f ~/.bashrc ]; then
+  echo "alias lzd=lazydocker" >> ~/.bashrc
+  log_success "Bash alias added"
+fi
