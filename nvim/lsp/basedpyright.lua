@@ -87,20 +87,29 @@ return {
 		if vim.fn.executable(venv) == 1 then
 			local extra_paths = get_editable_extra_paths(root_dir)
 
-			-- pyrightconfig.json extraPaths overrides LSP extraPaths, so if it
-			-- exists we must patch it on disk to include editable-install paths.
+			-- pyrightconfig.json overrides LSP settings, so if it exists we must
+			-- patch it on disk to include editable-install paths and our preferred
+			-- typeCheckingMode.
 			local pyright_cfg = root_dir .. "/pyrightconfig.json"
 			if vim.fn.filereadable(pyright_cfg) == 1 then
 				local ok, config = pcall(vim.fn.json_decode, vim.fn.readfile(pyright_cfg))
 				if ok and config then
-					local existing = config.extraPaths or {}
 					local changed = false
+
+					local existing = config.extraPaths or {}
 					for _, p in ipairs(extra_paths) do
 						if not vim.tbl_contains(existing, p) then
 							table.insert(existing, p)
 							changed = true
 						end
 					end
+
+					local desired_mode = client.config.settings.basedpyright.analysis.typeCheckingMode
+					if config.typeCheckingMode ~= desired_mode then
+						config.typeCheckingMode = desired_mode
+						changed = true
+					end
+
 					if changed then
 						config.extraPaths = existing
 						local json = vim.fn.system({ "python3", "-m", "json.tool" }, vim.fn.json_encode(config))
