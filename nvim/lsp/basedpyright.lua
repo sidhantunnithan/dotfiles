@@ -57,12 +57,27 @@ return {
 	root_dir = function(bufnr, on_dir)
 		on_dir(vim.fn.getcwd())
 	end,
+	capabilities = {
+		workspace = {
+			didChangeWatchedFiles = {
+				dynamicRegistration = false,
+			},
+		},
+	},
 	settings = {
 		basedpyright = {
 			analysis = {
 				autoSearchPaths = true,
 				useLibraryCodeForTypes = true,
 				diagnosticMode = "openFilesOnly",
+				typeCheckingMode = "standard",
+				diagnosticSeverityOverrides = {
+					reportUnknownMemberType = false,
+					reportUnknownArgumentType = false,
+					reportUnknownVariableType = false,
+					reportUnknownParameterType = false,
+					reportUnknownLambdaType = false,
+				},
 			},
 		},
 	},
