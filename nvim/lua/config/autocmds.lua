@@ -39,6 +39,16 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+-- Auto-restore session for current directory when opening nvim with no args
+vim.api.nvim_create_autocmd("VimEnter", {
+	nested = true,
+	callback = function()
+		if vim.fn.argc() == 0 then
+			require("persistence").load()
+		end
+	end,
+})
+
 -- Clear quickfix preview highlights when quickfix window closes
 vim.api.nvim_create_autocmd("BufWinLeave", {
 	callback = function()

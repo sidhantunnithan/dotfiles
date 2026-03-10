@@ -92,13 +92,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		end, { desc = "Next error" })
 		map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Set loclist" })
 
-		-- Workspace management
-		map("n", "<leader>wa", vim.lsp.buf.add_workspace_folder, { desc = "Add workspace folder" })
-		map("n", "<leader>wr", vim.lsp.buf.remove_workspace_folder, { desc = "Remove workspace folder" })
-		map("n", "<leader>wl", function()
-			print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-		end, { desc = "List workspace folders" })
-
 		-- Enable inlay hints if supported
 		if client and client:supports_method("textDocument/inlayHint") then
 			vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
