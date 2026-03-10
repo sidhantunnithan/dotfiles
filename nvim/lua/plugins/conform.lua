@@ -7,7 +7,7 @@ return {
 			{
 				"<C-f>",
 				function()
-					require("conform").format({ async = false, lsp_format = "fallback" })
+					require("conform").format({ async = false, lsp_format = "fallback", timeout_ms = 5000 })
 				end,
 				mode = "n",
 				desc = "Format file with conform",
@@ -17,6 +17,7 @@ return {
 			require("conform").setup({
 				format_on_save = {
 					lsp_format = "fallback",
+					timeout_ms = 5000,
 				},
 				formatters_by_ft = {
 					lua = { "stylua" },

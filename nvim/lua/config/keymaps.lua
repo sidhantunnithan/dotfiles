@@ -22,7 +22,7 @@ vim.keymap.set("n", "<leader>x", function()
   end
 end, { desc = "Close buffer" })
 
-vim.keymap.set("n", "<leader>X", function()
+vim.keymap.set("n", "<leader>w", function()
   local modified_bufs = vim.tbl_filter(function(buf)
     return vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].modified
   end, vim.api.nvim_list_bufs())
@@ -57,3 +57,15 @@ vim.keymap.set("n", "<leader>ya", function()
   vim.fn.setreg("+", table.concat(lines, "\n"))
   vim.notify("Copied file contents")
 end, { desc = "Copy file contents" })
+
+-- load the session for the current directory
+vim.keymap.set("n", "<leader>qs", function() require("persistence").load() end)
+
+-- select a session to load
+vim.keymap.set("n", "<leader>qS", function() require("persistence").select() end)
+
+-- load the last session
+vim.keymap.set("n", "<leader>ql", function() require("persistence").load({ last = true }) end)
+
+-- stop Persistence => session won't be saved on exit
+vim.keymap.set("n", "<leader>qd", function() require("persistence").stop() end)
