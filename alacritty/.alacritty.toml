@@ -2,7 +2,6 @@
 decorations = "none"
 dynamic_title = true
 opacity = 0.9
-option_as_alt = "Both"
 startup_mode = "Maximized"
 
 [window.padding]
@@ -18,10 +17,6 @@ TERM = "alacritty"
 [cursor]
 style = "Block"
 unfocused_hollow = true
-
-[terminal.shell]
-args = ["--login"]
-program = "/bin/zsh"
 
 [mouse]
 hide_when_typing = false
@@ -57,26 +52,6 @@ key = "Left"
 mods = "Alt"
 
 [[keyboard.bindings]]
-action = "Paste"
-key = "V"
-mods = "Command"
-
-[[keyboard.bindings]]
-action = "Copy"
-key = "C"
-mods = "Command"
-
-[[keyboard.bindings]]
-action = "Quit"
-key = "Q"
-mods = "Command"
-
-[[keyboard.bindings]]
-action = "ToggleFullscreen"
-key = "Return"
-mods = "Command"
-
-[[keyboard.bindings]]
 chars = "\u001BF"
 key = "Right"
 mods = "Alt"
@@ -87,5 +62,6 @@ import = [
   # "~/.config/alacritty/catppuccin-latte.toml"
   # "~/.config/alacritty/catppuccin-frappe.toml"
   # "~/.config/alacritty/catppuccin-macchiato.toml"
-  "~/.config/alacritty/catppuccin-mocha.toml"
+  "~/.config/alacritty/catppuccin-mocha.toml",
+  "~/.config/alacritty/platform.toml"
 ]

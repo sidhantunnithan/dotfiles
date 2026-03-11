@@ -30,9 +30,64 @@ fi
 
 log_section "Configuring Alacritty"
 DOTFILES_RAW="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main"
-curl -fsSL "$DOTFILES_RAW/alacritty/.alacritty.toml" -o ~/.alacritty.toml
-log_success "Configuration file downloaded"
 
 mkdir -p ~/.config/alacritty
+
+curl -fsSL "$DOTFILES_RAW/alacritty/.alacritty.toml" -o ~/.config/alacritty/alacritty.toml
+log_success "Configuration file downloaded"
+
 curl -LO --output-dir ~/.config/alacritty https://github.com/catppuccin/alacritty/raw/main/catppuccin-mocha.toml
 log_success "Catppuccin color theme downloaded"
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  cat > ~/.config/alacritty/platform.toml <<'EOF'
+[window]
+option_as_alt = "Both"
+
+[terminal.shell]
+args = ["--login"]
+program = "/bin/zsh"
+
+[[keyboard.bindings]]
+action = "Paste"
+key = "V"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "Copy"
+key = "C"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "Quit"
+key = "Q"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "ToggleFullscreen"
+key = "Return"
+mods = "Command"
+EOF
+  log_success "Platform config written (macOS)"
+else
+  cat > ~/.config/alacritty/platform.toml <<'EOF'
+[terminal.shell]
+args = ["--login"]
+program = "/bin/bash"
+
+[[keyboard.bindings]]
+action = "Paste"
+key = "V"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "Copy"
+key = "C"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "ToggleFullscreen"
+key = "F11"
+EOF
+  log_success "Platform config written (Linux)"
+fi
