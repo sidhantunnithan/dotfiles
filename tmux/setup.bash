@@ -41,8 +41,9 @@ log_success "Catppuccin theme installed"
 
 log_section "Configuring Tmux"
 DOTFILES_RAW="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main"
-curl -fsSL "$DOTFILES_RAW/tmux/.tmux.conf" -o ~/.tmux.conf
+mkdir -p ~/.config/tmux
+curl -fsSL "$DOTFILES_RAW/tmux/.tmux.conf" -o ~/.config/tmux/tmux.conf
 log_success "Tmux configuration file downloaded"
 
-tmux source-file ~/.tmux.conf
+tmux source-file ~/.config/tmux/tmux.conf
 log_success "Tmux configuration reloaded"
