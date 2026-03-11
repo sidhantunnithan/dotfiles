@@ -27,17 +27,24 @@ if [[ "$(uname)" == "Darwin" ]]; then
 else
   # Linux: download latest release
   echo -e "${YELLOW}Setting up Neovim from latest release...${NC}"
+  ARCH=$(uname -m)
+  if [[ "$ARCH" == "aarch64" || "$ARCH" == "arm64" ]]; then
+    NVIM_TARBALL="nvim-linux-arm64.tar.gz"
+  else
+    NVIM_TARBALL="nvim-linux-x86_64.tar.gz"
+  fi
+  NVIM_DIR="${NVIM_TARBALL%.tar.gz}"
   cd /tmp
-  curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
-  sudo rm -rf /opt/nvim-linux-x86_64
-  sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
-  rm nvim-linux-x86_64.tar.gz
+  curl -LO "https://github.com/neovim/neovim/releases/latest/download/$NVIM_TARBALL"
+  sudo rm -rf "/opt/$NVIM_DIR"
+  sudo tar -C /opt -xzf "$NVIM_TARBALL"
+  rm "$NVIM_TARBALL"
   cd -
   log_success "Neovim installed from latest release"
 
   # Add to PATH in bashrc if not already present
-  if ! grep -q 'export PATH=.*nvim-linux-x86_64/bin' ~/.bashrc; then
-    echo 'export PATH="$PATH:/opt/nvim-linux-x86_64/bin"' >> ~/.bashrc
+  if ! grep -q "export PATH=.*$NVIM_DIR/bin" ~/.bashrc; then
+    echo "export PATH=\"\$PATH:/opt/$NVIM_DIR/bin\"" >> ~/.bashrc
     log_success "Neovim PATH added to ~/.bashrc"
   else
     log_success "Neovim PATH already in ~/.bashrc"
@@ -70,4 +77,3 @@ if ! command -v rg &> /dev/null; then
 else
   log_success "Ripgrep already installed"
 fi
-
