@@ -22,10 +22,36 @@ if ! command -v alacritty &> /dev/null; then
     brew install --cask alacritty
     log_success "Alacritty installed via Homebrew"
   else
-    echo "Please install alacritty manually: https://alacritty.org"
+    sudo apt install -y alacritty || {
+      echo -e "${YELLOW}apt install failed — try: sudo add-apt-repository ppa:aslatter/ppa && sudo apt update && sudo apt install alacritty${NC}"
+      exit 1
+    }
+    log_success "Alacritty installed via apt"
   fi
 else
   log_success "Alacritty already installed"
+fi
+
+log_section "Installing JetBrainsMono Nerd Font"
+if [[ "$(uname)" == "Darwin" ]]; then
+  FONT_DIR=~/Library/Fonts
+else
+  FONT_DIR=~/.local/share/fonts
+fi
+if ! find "$FONT_DIR" -name "JetBrainsMonoNerdFont*" 2>/dev/null | grep -q .; then
+  echo -e "${YELLOW}Font not found, installing...${NC}"
+  mkdir -p "$FONT_DIR"
+  TMPDIR=$(mktemp -d)
+  curl -fsSL -o "$TMPDIR/JetBrainsMono.zip" "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/JetBrainsMono.zip"
+  unzip -qo "$TMPDIR/JetBrainsMono.zip" -d "$TMPDIR/fonts"
+  cp "$TMPDIR"/fonts/*.ttf "$FONT_DIR/"
+  rm -rf "$TMPDIR"
+  if [[ "$(uname)" != "Darwin" ]]; then
+    fc-cache -f "$FONT_DIR"
+  fi
+  log_success "JetBrainsMono Nerd Font installed"
+else
+  log_success "JetBrainsMono Nerd Font already installed"
 fi
 
 log_section "Configuring Alacritty"

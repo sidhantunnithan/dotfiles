@@ -15,10 +15,10 @@ log_success() {
   echo -e "${GREEN}✓ $1${NC}"
 }
 
-RC=~/.zshrc
+RC=~/.bashrc
 
 if [ ! -f "$RC" ]; then
-  echo -e "${YELLOW}~/.zshrc not found — creating it${NC}"
+  echo -e "${YELLOW}~/.bashrc not found — creating it${NC}"
   touch "$RC"
 fi
 
@@ -35,18 +35,18 @@ else
   log_success "fzf already installed"
 fi
 
-log_section "Setting up Zsh aliases"
-ALIAS_MARKER="# dotfiles: zsh aliases"
+log_section "Setting up Bash aliases"
+ALIAS_MARKER="# dotfiles: bash aliases"
 if ! grep -q "$ALIAS_MARKER" "$RC"; then
   cat >> "$RC" <<'EOF'
 
-# dotfiles: zsh aliases
+# dotfiles: bash aliases
 alias ranger=". ranger"
 alias rn="ranger"
 EOF
-  log_success "Zsh aliases added"
+  log_success "Bash aliases added"
 else
-  log_success "Zsh aliases already present"
+  log_success "Bash aliases already present"
 fi
 
 log_section "Setting up ss() SSH host picker"

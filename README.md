@@ -52,6 +52,12 @@ curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/range
 curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/zsh/setup.bash | bash
 ```
 
+### bash aliases
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/bash/setup.bash | bash
+```
+
 ### Raycast (macOS only)
 
 ```bash

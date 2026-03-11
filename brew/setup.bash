@@ -28,6 +28,13 @@ log_section "Installing packages from Brewfile"
 DOTFILES_RAW="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main"
 BREWFILE_TMP=$(mktemp)
 curl -fsSL "$DOTFILES_RAW/brew/Brewfile" -o "$BREWFILE_TMP"
+
+# Strip cask and vscode lines on Linux (unsupported)
+if [[ "$(uname)" != "Darwin" ]]; then
+  sed -i '/^cask /d;/^vscode /d' "$BREWFILE_TMP"
+  log_success "Filtered macOS-only entries for Linux"
+fi
+
 brew bundle --file="$BREWFILE_TMP"
 log_success "Brewfile packages installed"
 rm -f "$BREWFILE_TMP"

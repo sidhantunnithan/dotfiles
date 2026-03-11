@@ -45,5 +45,9 @@ mkdir -p ~/.config/tmux
 curl -fsSL "$DOTFILES_RAW/tmux/.tmux.conf" -o ~/.config/tmux/tmux.conf
 log_success "Tmux configuration file downloaded"
 
-tmux source-file ~/.config/tmux/tmux.conf
-log_success "Tmux configuration reloaded"
+if tmux list-sessions &> /dev/null; then
+  tmux source-file ~/.config/tmux/tmux.conf
+  log_success "Tmux configuration reloaded"
+else
+  log_success "Tmux not running — config will apply on next session"
+fi
