@@ -49,6 +49,31 @@ vim.api.nvim_create_autocmd("VimEnter", {
 	end,
 })
 
+-- Close dashboard when a real file is opened
+local _dashboard_buf = nil
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "dashboard",
+	callback = function(args)
+		_dashboard_buf = args.buf
+	end,
+})
+
+vim.api.nvim_create_autocmd("BufWinEnter", {
+	callback = function(args)
+		if not _dashboard_buf then return end
+		if args.buf == _dashboard_buf then return end
+		if vim.bo[args.buf].buftype ~= "" then return end
+		if vim.api.nvim_buf_get_name(args.buf) == "" then return end
+		local buf = _dashboard_buf
+		_dashboard_buf = nil
+		for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+			pcall(vim.api.nvim_win_close, win, true)
+		end
+		pcall(vim.api.nvim_buf_delete, buf, { force = true })
+	end,
+})
+
 -- Clear quickfix preview highlights when quickfix window closes
 vim.api.nvim_create_autocmd("BufWinLeave", {
 	callback = function()
