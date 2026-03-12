@@ -41,8 +41,7 @@ if ! grep -q "$ALIAS_MARKER" "$RC"; then
   cat >> "$RC" <<'EOF'
 
 # dotfiles: zsh aliases
-alias ranger=". ranger"
-alias rn="ranger"
+alias rn=". ranger"
 EOF
   log_success "Zsh aliases added"
 else
