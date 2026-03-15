@@ -53,12 +53,23 @@ else
 fi
 
 log_section "Configuring Yazi"
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -L ~/.config/yazi ] || [ -d ~/.config/yazi ]; then
-  rm -rf ~/.config/yazi
+YAZI_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/yazi"
+mkdir -p "$YAZI_CONFIG_DIR/plugins"
+REPO_BASE="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/yazi"
+
+for file in yazi.toml keymap.toml theme.toml package.toml init.lua; do
+  curl -fsSL "$REPO_BASE/$file" -o "$YAZI_CONFIG_DIR/$file"
+  log_success "Downloaded $file"
+done
+log_success "Yazi config files installed"
+
+log_section "Installing Yazi plugins"
+if ! command -v ya &> /dev/null; then
+  echo -e "${YELLOW}ya CLI not found, skipping plugin install${NC}"
+else
+  ya pkg add dedukun/bookmarks
+  log_success "Yazi plugins installed"
 fi
-ln -s "$DOTFILES_DIR" ~/.config/yazi
-log_success "Yazi config directory symlinked"
 
 log_section "Setting up f() yazi wrapper"
 for rc in ~/.zshrc ~/.bashrc; do
