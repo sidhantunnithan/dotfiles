@@ -15,21 +15,41 @@ log_success() {
   echo -e "${GREEN}✓ $1${NC}"
 }
 
-log_section "Installing Yazi"
-if ! command -v yazi &> /dev/null; then
-  echo -e "${YELLOW}Yazi not found, installing...${NC}"
-  if [[ "$(uname)" == "Darwin" ]]; then
-    brew install yazi
-    log_success "Yazi installed via Homebrew"
-  else
-    YAZI_DEB="/tmp/yazi-aarch64-unknown-linux-gnu.deb"
-    curl -fsSL "https://github.com/sxyazi/yazi/releases/download/v26.1.22/yazi-aarch64-unknown-linux-gnu.deb" -o "$YAZI_DEB"
+log_section "Installing Yazi and dependencies"
+if [[ "$(uname)" == "Darwin" ]]; then
+  for pkg in yazi mediainfo; do
+    if ! command -v "$pkg" &> /dev/null; then
+      echo -e "${YELLOW}$pkg not found, installing...${NC}"
+      brew install "$pkg"
+      log_success "$pkg installed via Homebrew"
+    else
+      log_success "$pkg already installed"
+    fi
+  done
+else
+  if ! command -v yazi &> /dev/null; then
+    echo -e "${YELLOW}Yazi not found, installing...${NC}"
+    ARCH=$(uname -m)
+    if [[ "$ARCH" == "aarch64" || "$ARCH" == "arm64" ]]; then
+      YAZI_ARCH="aarch64"
+    else
+      YAZI_ARCH="x86_64"
+    fi
+    YAZI_DEB="/tmp/yazi-${YAZI_ARCH}-unknown-linux-gnu.deb"
+    curl -fsSL "https://github.com/sxyazi/yazi/releases/download/v26.1.22/yazi-${YAZI_ARCH}-unknown-linux-gnu.deb" -o "$YAZI_DEB"
     sudo apt install -y "$YAZI_DEB"
     rm -f "$YAZI_DEB"
     log_success "Yazi installed via .deb package"
+  else
+    log_success "Yazi already installed"
   fi
-else
-  log_success "Yazi already installed"
+  if ! command -v mediainfo &> /dev/null; then
+    echo -e "${YELLOW}mediainfo not found, installing...${NC}"
+    sudo apt install -y mediainfo
+    log_success "mediainfo installed via apt"
+  else
+    log_success "mediainfo already installed"
+  fi
 fi
 
 log_section "Configuring Yazi"
@@ -40,12 +60,12 @@ fi
 ln -s "$DOTFILES_DIR" ~/.config/yazi
 log_success "Yazi config directory symlinked"
 
-log_section "Setting up y() yazi wrapper"
+log_section "Setting up f() yazi wrapper"
 for rc in ~/.zshrc ~/.bashrc; do
-  if [ -f "$rc" ] && ! grep -q "^function y()" "$rc"; then
+  if [ -f "$rc" ] && ! grep -q "^function f()" "$rc"; then
     cat >> "$rc" << 'EOF'
 
-function y() {
+function f() {
     local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
     command yazi "$@" --cwd-file="$tmp"
     IFS= read -r -d '' cwd < "$tmp"
@@ -53,8 +73,8 @@ function y() {
     rm -f -- "$tmp"
 }
 EOF
-    log_success "y() function added to $rc"
+    log_success "f() function added to $rc"
   else
-    log_success "y() already exists in $rc, skipping"
+    log_success "f() already exists in $rc, skipping"
   fi
 done
