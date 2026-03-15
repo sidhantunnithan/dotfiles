@@ -15,6 +15,19 @@ log_success() {
   echo -e "${GREEN}✓ $1${NC}"
 }
 
+log_section "Installing Zsh"
+if ! command -v zsh &> /dev/null; then
+  echo -e "${YELLOW}Zsh not found, installing...${NC}"
+  if [[ "$(uname)" == "Darwin" ]]; then
+    brew install zsh
+  else
+    sudo apt install -y zsh
+  fi
+  log_success "Zsh installed"
+else
+  log_success "Zsh already installed"
+fi
+
 RC=~/.zshrc
 
 if [ ! -f "$RC" ]; then
