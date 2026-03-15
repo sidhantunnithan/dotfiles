@@ -1,0 +1,10 @@
+[plugin]
+preloaders = []
+previewers = [
+  { mime = "{audio,video,image}/*", run = "mediainfo" },
+  { mime = "application/json", run = "code" },
+  { mime = "*/javascript", run = "code" },
+  { mime = "*/xml", run = "code" },
+  { mime = "text/*", run = "code" },
+  { name = "*/", run = "folder" },
+]
