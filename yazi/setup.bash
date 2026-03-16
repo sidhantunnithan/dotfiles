@@ -67,7 +67,7 @@ log_section "Installing Yazi plugins"
 if ! command -v ya &> /dev/null; then
   echo -e "${YELLOW}ya CLI not found, skipping plugin install${NC}"
 else
-  ya pkg add dedukun/bookmarks
+  ya pkg add dedukun/bookmarks || true
   log_success "Yazi plugins installed"
 fi
 

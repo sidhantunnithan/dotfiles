@@ -96,23 +96,6 @@ else
   log_success "EDITOR already configured"
 fi
 
-log_section "Setting up y() yazi wrapper"
-if ! grep -q "^function y()" "$RC"; then
-  cat >> "$RC" << 'EOF'
-
-function y() {
-    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-    command yazi "$@" --cwd-file="$tmp"
-    IFS= read -r -d '' cwd < "$tmp"
-    [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
-    rm -f -- "$tmp"
-}
-EOF
-  log_success "y() function added"
-else
-  log_success "y() already exists, skipping"
-fi
-
 log_section "Setting up p() project switcher"
 if ! grep -q "^function p()" "$RC"; then
   cat >> "$RC" << 'EOF'
