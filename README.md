@@ -58,6 +58,12 @@ curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/zsh/s
 curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/bash/setup.bash | bash
 ```
 
+### yazi
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/yazi/setup.bash | bash
+```
+
 ### Raycast (macOS only)
 
 ```bash
