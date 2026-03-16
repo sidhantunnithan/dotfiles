@@ -27,6 +27,9 @@ mouse = "Middle"
 
 [font]
 size = 15.0
+# Use font's box-drawing glyphs instead of Alacritty's built-in ones.
+# Fixes misaligned borders in TUI apps on Linux (FreeType rendering).
+# builtin_box_drawing = false
 
 [font.bold]
 family = "JetBrainsMono Nerd Font"
