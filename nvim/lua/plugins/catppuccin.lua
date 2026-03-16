@@ -22,7 +22,7 @@ return {
 					-- miscs = {}, -- Uncomment to turn off hard-coded styles
 				},
 			})
-			vim.cmd.colorscheme("catppuccin")
+			vim.cmd.colorscheme("catppuccin-mocha")
 		end,
 	},
 }
