@@ -15,6 +15,23 @@ log_success() {
   echo -e "${GREEN}✓ $1${NC}"
 }
 
+upsert_function() {
+  local rc_file="$1"
+  local fn_name="$2"
+  local tmp_rc
+
+  if grep -q "^function ${fn_name}()" "$rc_file"; then
+    tmp_rc="$(mktemp)"
+    awk -v fn="$fn_name" '
+      BEGIN { in_fn = 0 }
+      $0 ~ "^function " fn "\\(\\) \\{$" { in_fn = 1; next }
+      in_fn == 1 && /^}$/ { in_fn = 0; next }
+      in_fn == 0 { print }
+    ' "$rc_file" > "$tmp_rc"
+    mv "$tmp_rc" "$rc_file"
+  fi
+}
+
 log_section "Installing Zsh"
 if ! command -v zsh &> /dev/null; then
   echo -e "${YELLOW}Zsh not found, installing...${NC}"
@@ -62,18 +79,15 @@ else
 fi
 
 log_section "Setting up ss() SSH host picker"
-if ! grep -q "^function ss()" "$RC"; then
-  cat >> "$RC" << 'EOF'
+upsert_function "$RC" "ss"
+cat >> "$RC" << 'EOF'
 
 function ss() {
     host=$(cat /etc/hosts | awk '/# End Checkpoint/{exit} p && $0 != "" {print} /# Checkpoint/{p=1}' | sed "s/.*\ //" | fzf)
     ssh -v "$host"
 }
 EOF
-  log_success "ss() function added"
-else
-  log_success "ss() already exists, skipping"
-fi
+log_success "ss() function set"
 
 log_section "Setting up EDITOR"
 EDITOR_MARKER="# dotfiles: EDITOR setup"
@@ -97,8 +111,8 @@ else
 fi
 
 log_section "Setting up p() project switcher"
-if ! grep -q "^function p()" "$RC"; then
-  cat >> "$RC" << 'EOF'
+upsert_function "$RC" "p"
+cat >> "$RC" << 'EOF'
 
 function p() {
     local project_dirs=(
@@ -120,7 +134,4 @@ function p() {
     fi
 }
 EOF
-  log_success "p() function added"
-else
-  log_success "p() already exists, skipping"
-fi
+log_success "p() function set"
