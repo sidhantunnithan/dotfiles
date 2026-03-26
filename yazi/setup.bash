@@ -6,6 +6,9 @@ BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
+YAZI_GITHUB_REPO="sxyazi/yazi"
+YAZI_UBUNTU_FALLBACK_VERSION="v26.1.22"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log_section() {
   echo -e "${BLUE}=== $1 ===${NC}"
@@ -42,6 +45,97 @@ install_ya_pkg() {
   return 1
 }
 
+version_le() {
+  [[ "$1" == "$2" ]] && return 0
+  [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n 1)" == "$1" ]]
+}
+
+detect_ubuntu_version() {
+  if [[ -r /etc/os-release ]]; then
+    # shellcheck disable=SC1091
+    source /etc/os-release
+    if [[ "${ID:-}" == "ubuntu" ]]; then
+      printf '%s\n' "${VERSION_ID:-}"
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+fetch_latest_yazi_tag() {
+  curl -fsSL "https://api.github.com/repos/${YAZI_GITHUB_REPO}/releases/latest" |
+    sed -n 's/.*"tag_name": "\(v[^"]*\)".*/\1/p' |
+    head -n 1
+}
+
+resolve_yazi_linux_release() {
+  local arch="$1"
+  local tag asset_suffix ubuntu_version
+
+  tag="$(fetch_latest_yazi_tag || true)"
+  if [[ -z "$tag" ]]; then
+    tag="$YAZI_UBUNTU_FALLBACK_VERSION"
+  fi
+  asset_suffix="unknown-linux-gnu"
+
+  if ubuntu_version="$(detect_ubuntu_version)"; then
+    if version_le "$ubuntu_version" "23.10"; then
+      tag="$YAZI_UBUNTU_FALLBACK_VERSION"
+      asset_suffix="unknown-linux-musl"
+      log_warn "Ubuntu ${ubuntu_version} detected, using Yazi ${tag} musl fallback" >&2
+    fi
+  fi
+
+  printf '%s %s\n' "$tag" "yazi-${arch}-${asset_suffix}.zip"
+}
+
+install_yazi_linux() {
+  local arch install_dir tmp_dir tag asset archive source_dir
+
+  case "$(uname -m)" in
+    aarch64|arm64) arch="aarch64" ;;
+    x86_64) arch="x86_64" ;;
+    *)
+      echo "Unsupported architecture: $(uname -m)" >&2
+      exit 1
+      ;;
+  esac
+
+  read -r tag asset <<< "$(resolve_yazi_linux_release "$arch")"
+  archive="${asset}"
+  install_dir="${HOME}/.local/bin"
+  tmp_dir="$(mktemp -d)"
+
+  log_section "Installing Yazi binaries"
+  mkdir -p "$install_dir"
+  rm -f "$install_dir/yazi" "$install_dir/ya"
+  curl -fsSL "https://github.com/${YAZI_GITHUB_REPO}/releases/download/${tag}/${archive}" -o "$tmp_dir/$archive"
+  unzip -q "$tmp_dir/$archive" -d "$tmp_dir"
+  source_dir="$tmp_dir/${archive%.zip}"
+  install -m 0755 "$source_dir/yazi" "$install_dir/yazi"
+  install -m 0755 "$source_dir/ya" "$install_dir/ya"
+  export PATH="$install_dir:$PATH"
+  hash -r 2>/dev/null || true
+
+  mkdir -p "$tmp_dir/xdg"
+  XDG_CONFIG_HOME="$tmp_dir/xdg" "$install_dir/yazi" --version >/dev/null
+  "$install_dir/ya" --version >/dev/null
+  rm -rf "$tmp_dir"
+  log_success "Installed Yazi ${tag} to ${install_dir}"
+}
+
+copy_managed_file() {
+  local rel_path="$1"
+  local destination="$2"
+
+  if [[ -f "${SCRIPT_DIR}/${rel_path}" ]]; then
+    cp "${SCRIPT_DIR}/${rel_path}" "$destination"
+  else
+    curl -fsSL "https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/yazi/${rel_path}" -o "$destination"
+  fi
+}
+
 log_section "Installing Yazi and dependencies"
 if [[ "$(uname)" == "Darwin" ]]; then
   for pkg in yazi mediainfo git; do
@@ -54,52 +148,31 @@ if [[ "$(uname)" == "Darwin" ]]; then
     fi
   done
 else
-  if ! command -v yazi &> /dev/null; then
-    echo -e "${YELLOW}Yazi not found, installing...${NC}"
-    ARCH=$(uname -m)
-    if [[ "$ARCH" == "aarch64" || "$ARCH" == "arm64" ]]; then
-      YAZI_ARCH="aarch64"
+  for pkg in mediainfo git curl unzip; do
+    if ! command -v "$pkg" &> /dev/null; then
+      echo -e "${YELLOW}$pkg not found, installing...${NC}"
+      sudo apt install -y "$pkg"
+      log_success "$pkg installed via apt"
     else
-      YAZI_ARCH="x86_64"
+      log_success "$pkg already installed"
     fi
-    YAZI_DEB="/tmp/yazi-${YAZI_ARCH}-unknown-linux-gnu.deb"
-    curl -fsSL "https://github.com/sxyazi/yazi/releases/download/v26.1.22/yazi-${YAZI_ARCH}-unknown-linux-gnu.deb" -o "$YAZI_DEB"
-    sudo apt install -y "$YAZI_DEB"
-    rm -f "$YAZI_DEB"
-    log_success "Yazi installed via .deb package"
-  else
-    log_success "Yazi already installed"
-  fi
-  if ! command -v mediainfo &> /dev/null; then
-    echo -e "${YELLOW}mediainfo not found, installing...${NC}"
-    sudo apt install -y mediainfo
-    log_success "mediainfo installed via apt"
-  else
-    log_success "mediainfo already installed"
-  fi
-  if ! command -v git &> /dev/null; then
-    echo -e "${YELLOW}git not found, installing...${NC}"
-    sudo apt install -y git
-    log_success "git installed via apt"
-  else
-    log_success "git already installed"
-  fi
+  done
+  install_yazi_linux
 fi
 
 log_section "Configuring Yazi"
 YAZI_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/yazi"
 mkdir -p "$YAZI_CONFIG_DIR/plugins" "$YAZI_CONFIG_DIR/flavors"
-REPO_BASE="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/yazi"
 
 for file in yazi.toml keymap.toml theme.toml package.toml init.lua; do
-  curl -fsSL "$REPO_BASE/$file" -o "$YAZI_CONFIG_DIR/$file"
-  log_success "Downloaded $file"
+  copy_managed_file "$file" "$YAZI_CONFIG_DIR/$file"
+  log_success "Installed $file"
 done
 
 for plugin in smart-enter mediainfo; do
   mkdir -p "$YAZI_CONFIG_DIR/plugins/$plugin.yazi"
-  curl -fsSL "$REPO_BASE/plugins/$plugin.yazi/main.lua" -o "$YAZI_CONFIG_DIR/plugins/$plugin.yazi/main.lua"
-  log_success "Downloaded local plugin: $plugin"
+  copy_managed_file "plugins/$plugin.yazi/main.lua" "$YAZI_CONFIG_DIR/plugins/$plugin.yazi/main.lua"
+  log_success "Installed local plugin: $plugin"
 done
 log_success "Yazi config files installed"
 
@@ -172,3 +245,21 @@ EOF
     log_success "$rc not found, skipping"
   fi
 done
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  if [ -f ~/.zshrc ]; then
+    # shellcheck disable=SC1090
+    source ~/.zshrc
+    log_success "~/.zshrc sourced"
+  else
+    log_success "~/.zshrc not found, skipping source"
+  fi
+else
+  if [ -f ~/.bashrc ]; then
+    # shellcheck disable=SC1090
+    source ~/.bashrc
+    log_success "~/.bashrc sourced"
+  else
+    log_success "~/.bashrc not found, skipping source"
+  fi
+fi
