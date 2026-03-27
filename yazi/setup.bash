@@ -247,19 +247,9 @@ EOF
 done
 
 if [[ "$(uname)" == "Darwin" ]]; then
-  if [ -f ~/.zshrc ]; then
-    # shellcheck disable=SC1090
-    source ~/.zshrc
-    log_success "~/.zshrc sourced"
-  else
-    log_success "~/.zshrc not found, skipping source"
-  fi
+  echo -e "${YELLOW}Run the following or open a new terminal to use the f() command:${NC}"
+  echo "  source ~/.zshrc"
 else
-  if [ -f ~/.bashrc ]; then
-    # shellcheck disable=SC1090
-    source ~/.bashrc
-    log_success "~/.bashrc sourced"
-  else
-    log_success "~/.bashrc not found, skipping source"
-  fi
+  echo -e "${YELLOW}Run the following or open a new terminal to use the f() command:${NC}"
+  echo "  source ~/.bashrc"
 fi
