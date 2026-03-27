@@ -16,17 +16,27 @@ log_success() {
 }
 
 log_section "Installing Tmux"
-if ! command -v tmux &> /dev/null; then
-  echo -e "${YELLOW}Tmux not found, installing...${NC}"
+if command -v tmux &> /dev/null; then
+  echo -e "${YELLOW}Tmux already installed, removing...${NC}"
   if [[ "$(uname)" == "Darwin" ]]; then
-    brew install tmux
+    brew uninstall tmux
   else
-    sudo apt install -y tmux
+    sudo apt remove -y tmux
   fi
-  log_success "Tmux installed"
-else
-  log_success "Tmux already installed"
 fi
+echo -e "${YELLOW}Installing Tmux...${NC}"
+if [[ "$(uname)" == "Darwin" ]]; then
+  brew install tmux
+else
+  sudo apt install -y libevent-dev libncurses-dev build-essential bison pkg-config
+  TMUX_VERSION="3.6"
+  TMUX_TAR="tmux-${TMUX_VERSION}.tar.gz"
+  curl -fsSL "https://github.com/tmux/tmux/releases/download/${TMUX_VERSION}/${TMUX_TAR}" -o "/tmp/${TMUX_TAR}"
+  tar -xzf "/tmp/${TMUX_TAR}" -C /tmp
+  (cd "/tmp/tmux-${TMUX_VERSION}" && ./configure && make && sudo make install)
+  rm -rf "/tmp/${TMUX_TAR}" "/tmp/tmux-${TMUX_VERSION}"
+fi
+log_success "Tmux installed"
 
 log_section "Installing Tmux Plugin Manager (TPM)"
 rm -rf ~/.config/tmux/plugins/tpm
