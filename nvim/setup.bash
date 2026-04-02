@@ -15,6 +15,11 @@ log_success() {
   echo -e "${GREEN}✓ $1${NC}"
 }
 
+version_lte() {
+  [[ "$1" == "$2" ]] && return 0
+  [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" == "$1" ]]
+}
+
 log_section "Installing Neovim"
 if [[ "$(uname)" == "Darwin" ]]; then
   if ! command -v nvim &> /dev/null; then
@@ -76,4 +81,45 @@ if ! command -v rg &> /dev/null; then
   log_success "Ripgrep installed"
 else
   log_success "Ripgrep already installed"
+fi
+
+log_section "Installing Tree-sitter CLI"
+if ! command -v tree-sitter &> /dev/null; then
+  echo -e "${YELLOW}Tree-sitter not found, installing...${NC}"
+  if [[ "$(uname)" == "Darwin" ]]; then
+    brew install tree-sitter
+    log_success "Tree-sitter installed via Homebrew"
+  else
+    TREE_SITTER_VERSION="v0.26.8"
+    UBUNTU_BASELINE="22.04"
+
+    if [[ -f /etc/os-release ]]; then
+      . /etc/os-release
+      if [[ "${ID:-}" == "ubuntu" ]] && [[ -n "${VERSION_ID:-}" ]]; then
+        if version_lte "$VERSION_ID" "$UBUNTU_BASELINE"; then
+          TREE_SITTER_VERSION="v0.25.10"
+        fi
+      fi
+    fi
+
+    ARCH=$(uname -m)
+    if [[ "$ARCH" == "aarch64" || "$ARCH" == "arm64" ]]; then
+      TREE_SITTER_ARCH="arm64"
+    else
+      TREE_SITTER_ARCH="x64"
+    fi
+
+    TREE_SITTER_ASSET="tree-sitter-linux-${TREE_SITTER_ARCH}.gz"
+    TREE_SITTER_URL="https://github.com/tree-sitter/tree-sitter/releases/download/${TREE_SITTER_VERSION}/${TREE_SITTER_ASSET}"
+    TREE_SITTER_BIN="$HOME/.local/bin/tree-sitter"
+
+    mkdir -p "$HOME/.local/bin"
+    curl -fL "$TREE_SITTER_URL" -o "/tmp/${TREE_SITTER_ASSET}"
+    gzip -dc "/tmp/${TREE_SITTER_ASSET}" > "$TREE_SITTER_BIN"
+    chmod 755 "$TREE_SITTER_BIN"
+    rm -f "/tmp/${TREE_SITTER_ASSET}"
+    log_success "Tree-sitter installed from ${TREE_SITTER_VERSION}"
+  fi
+else
+  log_success "Tree-sitter already installed"
 fi
