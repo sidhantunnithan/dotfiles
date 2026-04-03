@@ -234,7 +234,7 @@ function f() {
     if [[ -n "$TMUX" || "$TERM" == tmux* || "$TERM" == screen* ]]; then
       yazi_term="xterm-256color"
     fi
-    command env TERM="$yazi_term" yazi "$@" --cwd-file="$tmp"
+    command env TERM="$yazi_term" EDITOR="nvim" VISUAL="nvim" yazi "$@" --cwd-file="$tmp"
     IFS= read -r -d '' cwd < "$tmp"
     [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
     rm -f -- "$tmp"
