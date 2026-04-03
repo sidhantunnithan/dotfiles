@@ -58,7 +58,7 @@ vim.keymap.set("n", "<leader>ya", function()
   vim.notify("Copied file contents")
 end, { desc = "Copy file contents" })
 
-vim.keymap.set("n", "<leader>y", '"+yy', { desc = "Copy current line to system clipboard" })
+vim.keymap.set("n", "<leader>Y", '"+yy', { desc = "Copy current line to system clipboard" })
 vim.keymap.set("x", "<leader>y", '"+y', { desc = "Copy selection to system clipboard" })
 
 -- load the session for the current directory
