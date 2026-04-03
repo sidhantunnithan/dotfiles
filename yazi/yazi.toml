@@ -2,6 +2,16 @@
 ratio = [1, 2, 1]
 show_hidden = true
 
+[opener]
+edit = [
+  { run = 'nvim "$@"', block = true, for = "unix" },
+]
+
+[open]
+prepend_rules = [
+  { name = "*", use = [ "edit" ] },
+]
+
 [plugin]
 prepend_previewers = [
   { mime = "{audio,video,image}/*", run = "mediainfo" },
