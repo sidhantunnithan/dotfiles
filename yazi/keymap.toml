@@ -11,7 +11,7 @@ prepend_keymap = [
   { on = [ "d", "D" ], run = "remove",    desc = "Trash" },
   { on = "l",          run = "plugin smart-enter", desc = "Enter dir or open file" },
   { on = "<Enter>",    run = "plugin smart-enter", desc = "Enter dir or open file" },
-  { on = [ "g", "r" ], run = 'shell -- ya emit cd "$(git rev-parse --show-toplevel)"', desc = "cd to git root" },
+  { on = [ "g", "r" ], run = "cd /", desc = "cd to root" },
   { on = "m",          run = "plugin bookmarks save",       desc = "Save bookmark" },
   { on = "`",          run = "plugin bookmarks jump",       desc = "Jump to bookmark" },
   { on = [ "b", "d" ], run = "plugin bookmarks delete",     desc = "Delete bookmark" },
