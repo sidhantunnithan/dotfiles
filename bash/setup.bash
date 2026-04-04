@@ -39,6 +39,41 @@ if [ ! -f "$RC" ]; then
   touch "$RC"
 fi
 
+log_section "Installing LS_COLORS config"
+mkdir -p ~/.config/custom
+curl --output ~/.config/custom/lscolors.sh https://raw.githubusercontent.com/sidhantunnithan/LS_COLORS/refs/heads/master/lscolors.sh
+log_success "LS_COLORS script downloaded"
+
+log_section "Sourcing LS_COLORS in Bash"
+LSCOLORS_MARKER="# dotfiles: LS_COLORS setup"
+if ! grep -q "$LSCOLORS_MARKER" "$RC"; then
+  cat >> "$RC" <<'EOF'
+
+# dotfiles: LS_COLORS setup
+source ~/.config/custom/lscolors.sh
+EOF
+  log_success "LS_COLORS sourcing added"
+else
+  log_success "LS_COLORS sourcing already present"
+fi
+
+log_section "Ensuring ls color output in Bash"
+LS_COLOR_ALIAS_MARKER="# dotfiles: ls color alias"
+if ! grep -q "$LS_COLOR_ALIAS_MARKER" "$RC"; then
+  cat >> "$RC" <<'EOF'
+
+# dotfiles: ls color alias
+if command -v gls &> /dev/null; then
+    alias ls='gls --color=auto'
+elif ls -G . &> /dev/null; then
+    alias ls='ls -G'
+fi
+EOF
+  log_success "ls color alias added"
+else
+  log_success "ls color alias already present"
+fi
+
 log_section "Installing fzf"
 if ! command -v fzf &> /dev/null; then
   echo -e "${YELLOW}fzf not found, installing...${NC}"
