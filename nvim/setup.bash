@@ -83,6 +83,35 @@ else
   log_success "Ripgrep already installed"
 fi
 
+log_section "Checking build tools"
+required_build_tools=(gcc make)
+missing_build_tools=()
+
+for tool in "${required_build_tools[@]}"; do
+  if ! command -v "$tool" &> /dev/null; then
+    missing_build_tools+=("$tool")
+  fi
+done
+
+if [[ ${#missing_build_tools[@]} -gt 0 ]]; then
+  echo -e "${YELLOW}Missing build tools: ${missing_build_tools[*]}${NC}"
+  read -r -p "Install missing build tools now? [y/N]: " install_build_tools
+
+  if [[ "$install_build_tools" =~ ^[Yy]$ ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+      xcode-select --install || true
+      log_success "Requested Xcode Command Line Tools install"
+    else
+      sudo apt install -y "${missing_build_tools[@]}"
+      log_success "Installed build tools: ${missing_build_tools[*]}"
+    fi
+  else
+    echo -e "${YELLOW}Skipping build tool installation${NC}"
+  fi
+else
+  log_success "Build tools already installed"
+fi
+
 log_section "Installing Tree-sitter CLI"
 if ! command -v tree-sitter &> /dev/null; then
   echo -e "${YELLOW}Tree-sitter not found, installing...${NC}"
