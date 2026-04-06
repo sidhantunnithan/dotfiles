@@ -22,8 +22,12 @@ return {
 	},
 	{ -- optional blink completion source for require statements and module annotations
 		"saghen/blink.cmp",
-        version = "*",
+		version = "*",
 		opts = {
+			-- Uncomment this if Neovim crashes with a frizbee SSE4.1 panic on VMs/older CPUs.
+			-- fuzzy = {
+			-- 	implementation = "lua",
+			-- },
 			sources = {
 				-- add lazydev to your completion providers
 				default = { "lazydev", "lsp", "path", "snippets", "buffer" },
