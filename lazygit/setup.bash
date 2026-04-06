@@ -52,8 +52,17 @@ log_success "Lazygit configuration file downloaded"
 
 log_section "Setting up shell alias"
 for rc in ~/.zshrc ~/.bashrc; do
-  if [ -f "$rc" ] && ! grep -q 'alias lzg=lazygit' "$rc"; then
-    echo "alias lzg=lazygit" >> "$rc"
-    log_success "Alias added to $rc"
+  if [ -f "$rc" ]; then
+    if grep -q '^alias lzg=lazygit$' "$rc"; then
+      if [[ "$(uname)" == "Darwin" ]]; then
+        sed -i '' 's/^alias lzg=lazygit$/alias lg=lazygit/' "$rc"
+      else
+        sed -i 's/^alias lzg=lazygit$/alias lg=lazygit/' "$rc"
+      fi
+      log_success "Alias updated in $rc"
+    elif ! grep -q '^alias lg=lazygit$' "$rc"; then
+      echo "alias lg=lazygit" >> "$rc"
+      log_success "Alias added to $rc"
+    fi
   fi
 done
