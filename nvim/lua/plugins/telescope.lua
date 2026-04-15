@@ -17,6 +17,9 @@ return {
 				return
 			end
 
+			local target_line = tonumber(entry.lnum)
+			local target_col = tonumber(entry.col)
+
 			-- Get the file path
 			local filepath = entry.path or entry.filename
 			if not filepath then
@@ -72,6 +75,16 @@ return {
 			else
 				-- Open in a new tab
 				vim.cmd("tabnew " .. vim.fn.fnameescape(filepath))
+			end
+
+			if target_line and target_line > 0 then
+				local line_count = vim.api.nvim_buf_line_count(0)
+				local safe_line = math.min(target_line, line_count)
+				local line_text = vim.api.nvim_buf_get_lines(0, safe_line - 1, safe_line, false)[1] or ""
+				local safe_col = math.max((target_col or 1) - 1, 0)
+				safe_col = math.min(safe_col, #line_text)
+				vim.api.nvim_win_set_cursor(0, { safe_line, safe_col })
+				vim.cmd("normal! zz")
 			end
 		end
 
