@@ -9,10 +9,15 @@ edit = [
 
 [open]
 prepend_rules = [
-  { name = "*", use = [ "edit" ] },
+  { mime = "*/*", use = [ "edit" ] },
 ]
+
+[preview]
+max_width = 600
+max_height = 900
 
 [plugin]
 prepend_previewers = [
-  { mime = "{audio,video,image}/*", run = "mediainfo" },
+  { mime = "image/*", run = "image" },
+  { mime = "{audio,video}/*", run = "mediainfo" },
 ]
