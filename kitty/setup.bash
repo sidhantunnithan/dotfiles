@@ -40,6 +40,9 @@ else
 fi
 if ! find "$FONT_DIR" -name "JetBrainsMonoNerdFont*" 2>/dev/null | grep -q .; then
   echo -e "${YELLOW}Font not found, installing...${NC}"
+  if [[ "$(uname)" != "Darwin" ]] && ! command -v unzip &> /dev/null; then
+    sudo apt install -y unzip
+  fi
   mkdir -p "$FONT_DIR"
   TMPDIR=$(mktemp -d)
   curl -fsSL -o "$TMPDIR/JetBrainsMono.zip" "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/JetBrainsMono.zip"
