@@ -16,6 +16,12 @@ curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/brew/
 curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/alacritty/setup.bash | bash
 ```
 
+### Kitty
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/kitty/setup.bash | bash
+```
+
 ### Neovim
 
 ```bash
