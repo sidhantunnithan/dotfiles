@@ -1,5 +1,5 @@
 [mgr]
-ratio = [1, 2, 1]
+ratio = [1, 1, 2]
 show_hidden = true
 
 [opener]
@@ -18,6 +18,6 @@ max_height = 900
 
 [plugin]
 prepend_previewers = [
-  { mime = "image/*", run = "image" },
+  { mime = "image/*", run = "zoom" },
   { mime = "{audio,video}/*", run = "mediainfo" },
 ]
