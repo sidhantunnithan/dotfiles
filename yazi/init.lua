@@ -6,3 +6,5 @@ require("bookmarks"):setup({
 		enable = false,
 	},
 })
+ 
+require("full-border"):setup()
