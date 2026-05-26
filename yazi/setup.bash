@@ -138,7 +138,7 @@ copy_managed_file() {
 
 log_section "Installing Yazi and dependencies"
 if [[ "$(uname)" == "Darwin" ]]; then
-  for pkg in yazi mediainfo git; do
+  for pkg in yazi mediainfo git imagemagick; do
     if ! command -v "$pkg" &> /dev/null; then
       echo -e "${YELLOW}$pkg not found, installing...${NC}"
       brew install "$pkg"
@@ -148,7 +148,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
     fi
   done
 else
-  for pkg in mediainfo git curl unzip; do
+  for pkg in mediainfo git curl unzip imagemagick; do
     if ! command -v "$pkg" &> /dev/null; then
       echo -e "${YELLOW}$pkg not found, installing...${NC}"
       sudo apt install -y "$pkg"
@@ -169,7 +169,7 @@ for file in yazi.toml keymap.toml theme.toml package.toml init.lua; do
   log_success "Installed $file"
 done
 
-for plugin in smart-enter mediainfo; do
+for plugin in smart-enter mediainfo zoom; do
   mkdir -p "$YAZI_CONFIG_DIR/plugins/$plugin.yazi"
   copy_managed_file "plugins/$plugin.yazi/main.lua" "$YAZI_CONFIG_DIR/plugins/$plugin.yazi/main.lua"
   log_success "Installed local plugin: $plugin"
@@ -210,6 +210,19 @@ if [[ "$(uname)" == "Darwin" ]]; then
   RC_FILES=(~/.zshrc)
 else
   RC_FILES=(~/.bashrc)
+fi
+
+if [[ "$(uname)" != "Darwin" ]]; then
+  rc=~/.bashrc
+  if [ -f "$rc" ]; then
+    if grep -q "^export TERM=" "$rc"; then
+      sed -i 's/^export TERM=.*/export TERM=xterm-kitty/' "$rc"
+      log_success "Updated TERM=xterm-kitty in $rc"
+    else
+      echo $'\nexport TERM=xterm-kitty' >> "$rc"
+      log_success "Set TERM=xterm-kitty in $rc"
+    fi
+  fi
 fi
 
 for rc in "${RC_FILES[@]}"; do
