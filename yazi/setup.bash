@@ -243,11 +243,7 @@ for rc in "${RC_FILES[@]}"; do
 
 function f() {
     local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-    local yazi_term="$TERM"
-    if [[ -n "$TMUX" || "$TERM" == tmux* || "$TERM" == screen* ]]; then
-      yazi_term="xterm-256color"
-    fi
-    command env TERM="$yazi_term" EDITOR="nvim" VISUAL="nvim" yazi "$@" --cwd-file="$tmp"
+    command env EDITOR="nvim" VISUAL="nvim" yazi "$@" --cwd-file="$tmp"
     IFS= read -r -d '' cwd < "$tmp"
     [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
     rm -f -- "$tmp"
