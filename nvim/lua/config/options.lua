@@ -30,6 +30,8 @@ if vim.env.SSH_TTY ~= nil then
         ["*"] = osc52.paste("*"),
       },
     }
-    vim.opt.clipboard = "unnamedplus"
+    -- Note: clipboard is intentionally NOT set to "unnamedplus" so that normal
+    -- d/y/x/c stay in Vim's unnamed register. Only explicit "+ maps (see
+    -- keymaps.lua) reach the system clipboard, matching local behavior.
   end
 end
