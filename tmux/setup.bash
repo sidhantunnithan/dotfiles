@@ -1,30 +1,24 @@
 #!/bin/bash
 set -e
 
-# Color codes
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-log_section() {
-  echo -e "${BLUE}=== $1 ===${NC}"
-}
-
-log_success() {
-  echo -e "${GREEN}✓ $1${NC}"
-}
+# ── Logging ──────────────────────────────────────────────────────────────────
+TAG="tmux"
+log()         { printf '\033[01;34m[%s]\033[00m %s\n'                       "$TAG" "$*"; }
+log_section() { printf '\n\033[01;34m[%s]\033[00m \033[01m%s\033[00m\n'     "$TAG" "$*"; }
+log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TAG" "$*"; }
+log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
+log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
 log_section "Installing Tmux"
 if command -v tmux &> /dev/null; then
-  echo -e "${YELLOW}Tmux already installed, removing...${NC}"
+  log_warn "Tmux already installed, removing..."
   if [[ "$(uname)" == "Darwin" ]]; then
     brew uninstall tmux
   else
     sudo apt remove -y tmux
   fi
 fi
-echo -e "${YELLOW}Installing Tmux...${NC}"
+log_warn "Installing Tmux..."
 if [[ "$(uname)" == "Darwin" ]]; then
   brew install tmux
 else

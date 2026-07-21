@@ -1,23 +1,17 @@
 #!/bin/bash
 set -e
 
-# Color codes
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-log_section() {
-  echo -e "${BLUE}=== $1 ===${NC}"
-}
-
-log_success() {
-  echo -e "${GREEN}✓ $1${NC}"
-}
+# ── Logging ──────────────────────────────────────────────────────────────────
+TAG="brew"
+log()         { printf '\033[01;34m[%s]\033[00m %s\n'                       "$TAG" "$*"; }
+log_section() { printf '\n\033[01;34m[%s]\033[00m \033[01m%s\033[00m\n'     "$TAG" "$*"; }
+log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TAG" "$*"; }
+log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
+log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
 log_section "Installing Homebrew"
 if ! command -v brew &> /dev/null; then
-  echo -e "${YELLOW}Homebrew not found, installing...${NC}"
+  log_warn "Homebrew not found, installing..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   log_success "Homebrew installed"
 else

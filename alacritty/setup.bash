@@ -1,29 +1,23 @@
 #!/bin/bash
 set -e
 
-# Color codes
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-log_section() {
-  echo -e "${BLUE}=== $1 ===${NC}"
-}
-
-log_success() {
-  echo -e "${GREEN}✓ $1${NC}"
-}
+# ── Logging ──────────────────────────────────────────────────────────────────
+TAG="alacritty"
+log()         { printf '\033[01;34m[%s]\033[00m %s\n'                       "$TAG" "$*"; }
+log_section() { printf '\n\033[01;34m[%s]\033[00m \033[01m%s\033[00m\n'     "$TAG" "$*"; }
+log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TAG" "$*"; }
+log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
+log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
 log_section "Installing Alacritty"
 if ! command -v alacritty &> /dev/null; then
-  echo -e "${YELLOW}Alacritty not found, installing...${NC}"
+  log_warn "Alacritty not found, installing..."
   if [[ "$(uname)" == "Darwin" ]]; then
     brew install --cask alacritty
     log_success "Alacritty installed via Homebrew"
   else
     sudo apt install -y alacritty || {
-      echo -e "${YELLOW}apt install failed — try: sudo add-apt-repository ppa:aslatter/ppa && sudo apt update && sudo apt install alacritty${NC}"
+      log_warn "apt install failed — try: sudo add-apt-repository ppa:aslatter/ppa && sudo apt update && sudo apt install alacritty"
       exit 1
     }
     log_success "Alacritty installed via apt"
@@ -39,7 +33,7 @@ else
   FONT_DIR=~/.local/share/fonts
 fi
 if ! find "$FONT_DIR" -name "JetBrainsMonoNerdFont*" 2>/dev/null | grep -q .; then
-  echo -e "${YELLOW}Font not found, installing...${NC}"
+  log_warn "Font not found, installing..."
   mkdir -p "$FONT_DIR"
   TMPDIR=$(mktemp -d)
   curl -fsSL -o "$TMPDIR/JetBrainsMono.zip" "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/JetBrainsMono.zip"

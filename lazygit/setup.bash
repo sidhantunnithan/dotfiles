@@ -1,23 +1,17 @@
 #!/bin/bash
 set -e
 
-# Color codes
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-log_section() {
-  echo -e "${BLUE}=== $1 ===${NC}"
-}
-
-log_success() {
-  echo -e "${GREEN}✓ $1${NC}"
-}
+# ── Logging ──────────────────────────────────────────────────────────────────
+TAG="lazygit"
+log()         { printf '\033[01;34m[%s]\033[00m %s\n'                       "$TAG" "$*"; }
+log_section() { printf '\n\033[01;34m[%s]\033[00m \033[01m%s\033[00m\n'     "$TAG" "$*"; }
+log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TAG" "$*"; }
+log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
+log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
 log_section "Installing Lazygit"
 if ! command -v lazygit &> /dev/null; then
-  echo -e "${YELLOW}Lazygit not found, installing...${NC}"
+  log_warn "Lazygit not found, installing..."
   if [[ "$(uname)" == "Darwin" ]]; then
     brew install lazygit
     log_success "Lazygit installed via Homebrew"

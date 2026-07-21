@@ -1,19 +1,13 @@
 #!/bin/bash
 set -e
 
-# Color codes
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-log_section() {
-  echo -e "${BLUE}=== $1 ===${NC}"
-}
-
-log_success() {
-  echo -e "${GREEN}✓ $1${NC}"
-}
+# ── Logging ──────────────────────────────────────────────────────────────────
+TAG="nvim"
+log()         { printf '\033[01;34m[%s]\033[00m %s\n'                       "$TAG" "$*"; }
+log_section() { printf '\n\033[01;34m[%s]\033[00m \033[01m%s\033[00m\n'     "$TAG" "$*"; }
+log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TAG" "$*"; }
+log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
+log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
 version_lte() {
   [[ "$1" == "$2" ]] && return 0
@@ -23,7 +17,7 @@ version_lte() {
 log_section "Installing Neovim"
 if [[ "$(uname)" == "Darwin" ]]; then
   if ! command -v nvim &> /dev/null; then
-    echo -e "${YELLOW}Neovim not found, installing...${NC}"
+    log_warn "Neovim not found, installing..."
     brew install neovim
     log_success "Neovim installed"
   else
@@ -31,7 +25,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
   fi
 else
   # Linux: download latest release
-  echo -e "${YELLOW}Setting up Neovim from latest release...${NC}"
+  log_warn "Setting up Neovim from latest release..."
   ARCH=$(uname -m)
   if [[ "$ARCH" == "aarch64" || "$ARCH" == "arm64" ]]; then
     NVIM_TARBALL="nvim-linux-arm64.tar.gz"
@@ -72,7 +66,7 @@ log_success "Prettier config downloaded"
 
 log_section "Installing Neovim dependencies"
 if ! command -v rg &> /dev/null; then
-  echo -e "${YELLOW}Ripgrep not found, installing...${NC}"
+  log_warn "Ripgrep not found, installing..."
   if [[ "$(uname)" == "Darwin" ]]; then
     brew install ripgrep
   else
@@ -94,7 +88,7 @@ for tool in "${required_build_tools[@]}"; do
 done
 
 if [[ ${#missing_build_tools[@]} -gt 0 ]]; then
-  echo -e "${YELLOW}Missing build tools: ${missing_build_tools[*]}${NC}"
+  log_warn "Missing build tools: ${missing_build_tools[*]}"
   read -r -p "Install missing build tools now? [y/N]: " install_build_tools
 
   if [[ "$install_build_tools" =~ ^[Yy]$ ]]; then
@@ -106,7 +100,7 @@ if [[ ${#missing_build_tools[@]} -gt 0 ]]; then
       log_success "Installed build tools: ${missing_build_tools[*]}"
     fi
   else
-    echo -e "${YELLOW}Skipping build tool installation${NC}"
+    log_warn "Skipping build tool installation"
   fi
 else
   log_success "Build tools already installed"
@@ -114,7 +108,7 @@ fi
 
 log_section "Installing Tree-sitter CLI"
 if ! command -v tree-sitter &> /dev/null; then
-  echo -e "${YELLOW}Tree-sitter not found, installing...${NC}"
+  log_warn "Tree-sitter not found, installing..."
   if [[ "$(uname)" == "Darwin" ]]; then
     brew install tree-sitter
     log_success "Tree-sitter installed via Homebrew"

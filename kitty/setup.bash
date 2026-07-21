@@ -1,29 +1,23 @@
 #!/bin/bash
 set -e
 
-# Color codes
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-log_section() {
-  echo -e "${BLUE}=== $1 ===${NC}"
-}
-
-log_success() {
-  echo -e "${GREEN}✓ $1${NC}"
-}
+# ── Logging ──────────────────────────────────────────────────────────────────
+TAG="kitty"
+log()         { printf '\033[01;34m[%s]\033[00m %s\n'                       "$TAG" "$*"; }
+log_section() { printf '\n\033[01;34m[%s]\033[00m \033[01m%s\033[00m\n'     "$TAG" "$*"; }
+log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TAG" "$*"; }
+log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
+log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
 log_section "Installing Kitty"
 if ! command -v kitty &> /dev/null; then
-  echo -e "${YELLOW}Kitty not found, installing...${NC}"
+  log_warn "Kitty not found, installing..."
   if [[ "$(uname)" == "Darwin" ]]; then
     brew install --cask kitty
     log_success "Kitty installed via Homebrew"
   else
     sudo apt install -y kitty || {
-      echo -e "${YELLOW}apt install failed — try: sudo add-apt-repository ppa:sw1tchbl4d3/kitty && sudo apt update && sudo apt install kitty${NC}"
+      log_warn "apt install failed — try: sudo add-apt-repository ppa:sw1tchbl4d3/kitty && sudo apt update && sudo apt install kitty"
       exit 1
     }
     log_success "Kitty installed via apt"
@@ -39,7 +33,7 @@ else
   FONT_DIR=~/.local/share/fonts
 fi
 if ! find "$FONT_DIR" -name "JetBrainsMonoNerdFont*" 2>/dev/null | grep -q .; then
-  echo -e "${YELLOW}Font not found, installing...${NC}"
+  log_warn "Font not found, installing..."
   if [[ "$(uname)" != "Darwin" ]] && ! command -v unzip &> /dev/null; then
     sudo apt install -y unzip
   fi
@@ -70,4 +64,4 @@ curl -fsSL "$DOTFILES_RAW/kitty/catppuccin-mocha.conf" -o "$KITTY_CONFIG_DIR/cat
 log_success "Catppuccin color theme downloaded"
 
 log_section "Kitty setup complete"
-echo -e "${YELLOW}Restart Kitty or reload config to apply changes${NC}"
+log_warn "Restart Kitty or reload config to apply changes"
