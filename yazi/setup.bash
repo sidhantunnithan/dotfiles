@@ -1,31 +1,22 @@
 #!/bin/bash
 set -euo pipefail
 
-# Color codes
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+# ── Logging ──────────────────────────────────────────────────────────────────
+TAG="yazi"
+log()         { printf '\033[01;34m[%s]\033[00m %s\n'                       "$TAG" "$*"; }
+log_section() { printf '\n\033[01;34m[%s]\033[00m \033[01m%s\033[00m\n'     "$TAG" "$*"; }
+log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TAG" "$*"; }
+log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
+log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
+
 YAZI_GITHUB_REPO="sxyazi/yazi"
 YAZI_UBUNTU_FALLBACK_VERSION="v26.1.22"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-log_section() {
-  echo -e "${BLUE}=== $1 ===${NC}"
-}
-
-log_success() {
-  echo -e "${GREEN}✓ $1${NC}"
-}
-
-log_warn() {
-  echo -e "${YELLOW}! $1${NC}"
-}
-
 require_cmd() {
   local cmd="$1"
   if ! command -v "$cmd" &> /dev/null; then
-    echo "Missing required command: $cmd" >&2
+    log_error "Missing required command: $cmd" >&2
     exit 1
   fi
 }
@@ -97,7 +88,7 @@ install_yazi_linux() {
     aarch64|arm64) arch="aarch64" ;;
     x86_64) arch="x86_64" ;;
     *)
-      echo "Unsupported architecture: $(uname -m)" >&2
+      log_error "Unsupported architecture: $(uname -m)" >&2
       exit 1
       ;;
   esac
@@ -140,7 +131,7 @@ log_section "Installing Yazi and dependencies"
 if [[ "$(uname)" == "Darwin" ]]; then
   for pkg in yazi mediainfo git imagemagick; do
     if ! command -v "$pkg" &> /dev/null; then
-      echo -e "${YELLOW}$pkg not found, installing...${NC}"
+      log_warn "$pkg not found, installing..."
       brew install "$pkg"
       log_success "$pkg installed via Homebrew"
     else
@@ -150,7 +141,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
 else
   for pkg in mediainfo git curl unzip imagemagick; do
     if ! command -v "$pkg" &> /dev/null; then
-      echo -e "${YELLOW}$pkg not found, installing...${NC}"
+      log_warn "$pkg not found, installing..."
       sudo apt install -y "$pkg"
       log_success "$pkg installed via apt"
     else
@@ -256,9 +247,9 @@ EOF
 done
 
 if [[ "$(uname)" == "Darwin" ]]; then
-  echo -e "${YELLOW}Run the following or open a new terminal to use the f() command:${NC}"
-  echo "  source ~/.zshrc"
+  log_warn "Run the following or open a new terminal to use the f() command:"
+  log "  source ~/.zshrc"
 else
-  echo -e "${YELLOW}Run the following or open a new terminal to use the f() command:${NC}"
-  echo "  source ~/.bashrc"
+  log_warn "Run the following or open a new terminal to use the f() command:"
+  log "  source ~/.bashrc"
 fi
