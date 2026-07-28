@@ -11,6 +11,8 @@ log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TA
 
 YAZI_GITHUB_REPO="sxyazi/yazi"
 YAZI_UBUNTU_FALLBACK_VERSION="v26.1.22"
+COMPRESS_MIN_YAZI_VERSION="26.5.6"
+COMPRESS_LEGACY_REV="46a6b9f02ff2f8aced466a1f01a3fe241f1cd45f"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 require_cmd() {
@@ -39,6 +41,62 @@ install_ya_pkg() {
 version_le() {
   [[ "$1" == "$2" ]] && return 0
   [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n 1)" == "$1" ]]
+}
+
+yazi_version() {
+  yazi --version | sed -n 's/^Yazi \([0-9][0-9.]*\).*/\1/p'
+}
+
+# ya pkg has no --rev flag, so an older pin has to be cloned by hand. Removing
+# the dep from package.toml stops `ya pkg install` replacing it with the newer
+# revision pinned there.
+drop_package_dep() {
+  local file="$1" dep="$2" tmp
+  tmp="$(mktemp)"
+
+  awk -v dep="$dep" '
+    /^\[\[plugin\.deps\]\]/ {
+      if (inblk && !drop) printf "%s", blk
+      blk = $0 "\n"; inblk = 1; drop = 0; next
+    }
+    inblk && /^\[/ {
+      if (!drop) printf "%s", blk
+      blk = ""; inblk = 0; print; next
+    }
+    inblk {
+      blk = blk $0 "\n"
+      if ($0 == "use = \"" dep "\"") drop = 1
+      next
+    }
+    { print }
+    END { if (inblk && !drop) printf "%s", blk }
+  ' "$file" > "$tmp"
+
+  mv "$tmp" "$file"
+}
+
+# Yazi has no built-in compression, so the T/C keys in keymap.toml are backed by
+# KKV9/compress. The revision pinned in package.toml needs a Yazi newer than the
+# one installed on older Ubuntu, so those hosts get the last revision that still
+# supports them rather than a plugin Yazi refuses to load.
+install_compress_plugin() {
+  local version target
+  version="$(yazi_version 2>/dev/null || true)"
+
+  if [[ -z "$version" ]] || version_le "$COMPRESS_MIN_YAZI_VERSION" "$version"; then
+    install_ya_pkg KKV9/compress
+    log_success "Installed plugin: KKV9/compress"
+    return 0
+  fi
+
+  target="$YAZI_CONFIG_DIR/plugins/compress.yazi"
+  log_warn "Yazi $version predates $COMPRESS_MIN_YAZI_VERSION, pinning compress.yazi to ${COMPRESS_LEGACY_REV:0:7}"
+  drop_package_dep "$YAZI_CONFIG_DIR/package.toml" "KKV9/compress"
+  rm -rf "$target"
+  git clone -q https://github.com/KKV9/compress.yazi "$target"
+  git -C "$target" checkout -q "$COMPRESS_LEGACY_REV"
+  rm -rf "$target/.git"
+  log_success "Installed plugin: KKV9/compress (legacy pin)"
 }
 
 detect_ubuntu_version() {
@@ -127,26 +185,51 @@ copy_managed_file() {
   fi
 }
 
-log_section "Installing Yazi and dependencies"
-if [[ "$(uname)" == "Darwin" ]]; then
-  for pkg in yazi mediainfo git imagemagick; do
-    if ! command -v "$pkg" &> /dev/null; then
-      log_warn "$pkg not found, installing..."
-      brew install "$pkg"
-      log_success "$pkg installed via Homebrew"
-    else
+# Dependencies are listed as "package[:binary]" because a package name does not
+# always match the command it provides (e.g. Homebrew's sevenzip ships `7zz`).
+# 7-Zip is required by Yazi's built-in extractor, which shells out to `7zz`/`7z`
+# for every archive format, .tar.gz included.
+install_dep() {
+  local spec="$1" installer="$2"
+  local pkg="${spec%%:*}"
+  local bins="${spec##*:}"
+  local bin
+
+  # Several binaries may satisfy one package (Debian's p7zip-full ships `7z`,
+  # the newer 7zip package ships `7zz`); any one of them counts as installed.
+  IFS='|' read -ra bins <<< "$bins"
+  for bin in "${bins[@]}"; do
+    if command -v "$bin" &> /dev/null; then
       log_success "$pkg already installed"
+      return 0
     fi
   done
+
+  log_warn "$pkg not found, installing..."
+  "$installer" "$pkg"
+  log_success "$pkg installed"
+}
+
+brew_install() { brew install "$1"; }
+
+# Ubuntu 24.04+ renamed p7zip-full to 7zip; try the modern name first.
+apt_install() {
+  local pkg="$1"
+  if [[ "$pkg" == "7zip" ]]; then
+    sudo apt install -y 7zip || sudo apt install -y p7zip-full
+  else
+    sudo apt install -y "$pkg"
+  fi
+}
+
+log_section "Installing Yazi and dependencies"
+if [[ "$(uname)" == "Darwin" ]]; then
+  for spec in yazi mediainfo git 'imagemagick:magick|convert' sevenzip:7zz; do
+    install_dep "$spec" brew_install
+  done
 else
-  for pkg in mediainfo git curl unzip imagemagick; do
-    if ! command -v "$pkg" &> /dev/null; then
-      log_warn "$pkg not found, installing..."
-      sudo apt install -y "$pkg"
-      log_success "$pkg installed via apt"
-    else
-      log_success "$pkg already installed"
-    fi
+  for spec in mediainfo git curl unzip 'imagemagick:magick|convert' '7zip:7zz|7z'; do
+    install_dep "$spec" apt_install
   done
   install_yazi_linux
 fi
@@ -160,7 +243,10 @@ for file in yazi.toml keymap.toml theme.toml package.toml init.lua; do
   log_success "Installed $file"
 done
 
-for plugin in smart-enter mediainfo zoom; do
+# Only genuinely local plugins belong here. Anything listed in package.toml is
+# deployed by `ya pkg install`, which aborts if it finds a directory it did not
+# write itself.
+for plugin in smart-enter mediainfo; do
   mkdir -p "$YAZI_CONFIG_DIR/plugins/$plugin.yazi"
   copy_managed_file "plugins/$plugin.yazi/main.lua" "$YAZI_CONFIG_DIR/plugins/$plugin.yazi/main.lua"
   log_success "Installed local plugin: $plugin"
@@ -168,8 +254,13 @@ done
 log_success "Yazi config files installed"
 
 log_section "Resetting managed Yazi assets"
+# Every ya pkg-managed asset is cleared so `ya pkg install` always redeploys it
+# from scratch; this also repairs installs left inconsistent by earlier runs.
 rm -rf \
   "$YAZI_CONFIG_DIR/plugins/bookmarks.yazi" \
+  "$YAZI_CONFIG_DIR/plugins/compress.yazi" \
+  "$YAZI_CONFIG_DIR/plugins/full-border.yazi" \
+  "$YAZI_CONFIG_DIR/plugins/zoom.yazi" \
   "$YAZI_CONFIG_DIR/flavors/catppuccin-mocha.yazi"
 log_success "Cleared managed plugin/flavor directories"
 
@@ -177,6 +268,7 @@ log_section "Installing Yazi plugins"
 require_cmd ya
 install_ya_pkg dedukun/bookmarks
 log_success "Installed plugin: dedukun/bookmarks"
+install_compress_plugin
 
 log_section "Installing Yazi flavor"
 install_ya_pkg yazi-rs/flavors:catppuccin-mocha
@@ -191,10 +283,12 @@ if [ ! -f "$YAZI_CONFIG_DIR/flavors/catppuccin-mocha.yazi/flavor.toml" ]; then
   exit 1
 fi
 
-if [ ! -f "$YAZI_CONFIG_DIR/plugins/bookmarks.yazi/main.lua" ]; then
-  log_warn "Plugin file still missing after install: $YAZI_CONFIG_DIR/plugins/bookmarks.yazi/main.lua"
-  exit 1
-fi
+for plugin in bookmarks compress; do
+  if [ ! -f "$YAZI_CONFIG_DIR/plugins/$plugin.yazi/main.lua" ]; then
+    log_warn "Plugin file still missing after install: $YAZI_CONFIG_DIR/plugins/$plugin.yazi/main.lua"
+    exit 1
+  fi
+done
 
 log_section "Setting up f() yazi wrapper"
 if [[ "$(uname)" == "Darwin" ]]; then

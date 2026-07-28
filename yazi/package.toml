@@ -13,5 +13,10 @@ use = "yazi-rs/plugins:zoom"
 rev = "5d5c480"
 hash = "fa268cb59989a87780605fdcfb8d99a9"
 
+[[plugin.deps]]
+use = "KKV9/compress"
+rev = "e60e122"
+hash = "fbaf0adc8efc59555b748d36aab62d40"
+
 [flavor]
 deps = []
