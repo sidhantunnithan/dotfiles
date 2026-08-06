@@ -22,6 +22,15 @@ curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/alacr
 curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/kitty/setup.bash | bash
 ```
 
+### Kitty terminfo
+
+Installs the `xterm-kitty` terminfo entry so `clear`, `tput` and curses apps work
+over SSH. Run it on the **remote host**, not the kitty client.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/kitty/terminfo.bash | bash
+```
+
 ### Neovim
 
 ```bash
