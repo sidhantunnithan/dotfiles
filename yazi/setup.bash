@@ -130,9 +130,8 @@ resolve_yazi_linux_release() {
 
   if ubuntu_version="$(detect_ubuntu_version)"; then
     if version_le "$ubuntu_version" "23.10"; then
-      tag="$YAZI_UBUNTU_FALLBACK_VERSION"
       asset_suffix="unknown-linux-musl"
-      log_warn "Ubuntu ${ubuntu_version} detected, using Yazi ${tag} musl fallback" >&2
+      log_warn "Ubuntu ${ubuntu_version} detected, using Yazi ${tag} musl build" >&2
     fi
   fi
 
