@@ -43,8 +43,18 @@ version_le() {
   [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n 1)" == "$1" ]]
 }
 
+# Probed against a throwaway empty config. This runs after the managed flavor
+# has been cleared but before it is reinstalled, and Yazi refuses to start on a
+# dangling flavor reference: it writes "Failed to read flavor ..." straight to
+# the tty (bypassing the pipe) and then blocks on "Press <Enter> to continue".
+# </dev/null guarantees the probe can never wait for a keypress.
 yazi_version() {
-  yazi --version | sed -n 's/^Yazi \([0-9][0-9.]*\).*/\1/p'
+  local probe_dir version
+  probe_dir="$(mktemp -d)"
+  version="$(XDG_CONFIG_HOME="$probe_dir" yazi --version </dev/null 2>/dev/null |
+    sed -n 's/^Yazi \([0-9][0-9.]*\).*/\1/p')" || true
+  rm -rf "$probe_dir"
+  printf '%s\n' "$version"
 }
 
 # ya pkg has no --rev flag, so an older pin has to be cloned by hand. Removing
@@ -211,13 +221,24 @@ install_dep() {
 
 brew_install() { brew install "$1"; }
 
+# apt on its own still stops for debconf and for needrestart's full-screen
+# "which services should be restarted?" dialog, neither of which -y answers.
+# NEEDRESTART_MODE=a restarts affected services silently; NEEDRESTART_SUSPEND
+# covers older needrestart releases that ignore it.
+apt_noninteractive() {
+  sudo env DEBIAN_FRONTEND=noninteractive \
+           NEEDRESTART_MODE=a \
+           NEEDRESTART_SUSPEND=1 \
+    apt-get install -y -o Dpkg::Options::=--force-confold "$@"
+}
+
 # Ubuntu 24.04+ renamed p7zip-full to 7zip; try the modern name first.
 apt_install() {
   local pkg="$1"
   if [[ "$pkg" == "7zip" ]]; then
-    sudo apt install -y 7zip || sudo apt install -y p7zip-full
+    apt_noninteractive 7zip || apt_noninteractive p7zip-full
   else
-    sudo apt install -y "$pkg"
+    apt_noninteractive "$pkg"
   fi
 }
 
