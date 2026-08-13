@@ -9,6 +9,17 @@ log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TA
 log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
 log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
+# apt on its own still stops for debconf and for needrestart's full-screen
+# "which services should be restarted?" dialog, neither of which -y answers.
+# NEEDRESTART_MODE=a restarts affected services silently; NEEDRESTART_SUSPEND
+# covers older needrestart releases that ignore it.
+apt_noninteractive() {
+  sudo env DEBIAN_FRONTEND=noninteractive \
+           NEEDRESTART_MODE=a \
+           NEEDRESTART_SUSPEND=1 \
+    apt-get -y -o Dpkg::Options::=--force-confold "$@"
+}
+
 log_section "Installing Kitty"
 if ! command -v kitty &> /dev/null; then
   log_warn "Kitty not found, installing..."
@@ -16,7 +27,7 @@ if ! command -v kitty &> /dev/null; then
     brew install --cask kitty
     log_success "Kitty installed via Homebrew"
   else
-    sudo apt install -y kitty || {
+    apt_noninteractive install kitty || {
       log_warn "apt install failed — try: sudo add-apt-repository ppa:sw1tchbl4d3/kitty && sudo apt update && sudo apt install kitty"
       exit 1
     }
@@ -35,7 +46,7 @@ fi
 if ! find "$FONT_DIR" -name "JetBrainsMonoNerdFont*" 2>/dev/null | grep -q .; then
   log_warn "Font not found, installing..."
   if [[ "$(uname)" != "Darwin" ]] && ! command -v unzip &> /dev/null; then
-    sudo apt install -y unzip
+    apt_noninteractive install unzip
   fi
   mkdir -p "$FONT_DIR"
   TMPDIR=$(mktemp -d)

@@ -9,6 +9,17 @@ log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TA
 log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
 log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
+# apt on its own still stops for debconf and for needrestart's full-screen
+# "which services should be restarted?" dialog, neither of which -y answers.
+# NEEDRESTART_MODE=a restarts affected services silently; NEEDRESTART_SUSPEND
+# covers older needrestart releases that ignore it.
+apt_noninteractive() {
+  sudo env DEBIAN_FRONTEND=noninteractive \
+           NEEDRESTART_MODE=a \
+           NEEDRESTART_SUSPEND=1 \
+    apt-get -y -o Dpkg::Options::=--force-confold "$@"
+}
+
 # Install a package via the platform's package manager.
 # Runs `apt-get update` once on Linux so packages can be located on fresh hosts.
 APT_UPDATED=0
@@ -18,10 +29,10 @@ install_pkg() {
     brew install "$pkg"
   elif command -v apt-get &> /dev/null; then
     if [ "$APT_UPDATED" -eq 0 ]; then
-      sudo apt-get update
+      apt_noninteractive update
       APT_UPDATED=1
     fi
-    sudo apt-get install -y "$pkg"
+    apt_noninteractive install "$pkg"
   else
     log_warn "No supported package manager found; please install '${pkg}' manually"
     return 1

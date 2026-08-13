@@ -122,7 +122,12 @@ install_linux() {
   fi
 
   log "Installing kitty-terminfo via apt"
-  if $sudo_cmd env DEBIAN_FRONTEND=noninteractive apt-get install -y kitty-terminfo; then
+  # NEEDRESTART_* suppress needrestart's full-screen "which services should be
+  # restarted?" dialog, which -y does not answer.
+  if $sudo_cmd env DEBIAN_FRONTEND=noninteractive \
+                   NEEDRESTART_MODE=a \
+                   NEEDRESTART_SUSPEND=1 \
+       apt-get install -y kitty-terminfo; then
     log_success "kitty-terminfo installed system-wide"
     return
   fi

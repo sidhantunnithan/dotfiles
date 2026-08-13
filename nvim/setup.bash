@@ -9,6 +9,17 @@ log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TA
 log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
 log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
+# apt on its own still stops for debconf and for needrestart's full-screen
+# "which services should be restarted?" dialog, neither of which -y answers.
+# NEEDRESTART_MODE=a restarts affected services silently; NEEDRESTART_SUSPEND
+# covers older needrestart releases that ignore it.
+apt_noninteractive() {
+  sudo env DEBIAN_FRONTEND=noninteractive \
+           NEEDRESTART_MODE=a \
+           NEEDRESTART_SUSPEND=1 \
+    apt-get -y -o Dpkg::Options::=--force-confold "$@"
+}
+
 version_lte() {
   [[ "$1" == "$2" ]] && return 0
   [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" == "$1" ]]
@@ -70,7 +81,7 @@ if ! command -v rg &> /dev/null; then
   if [[ "$(uname)" == "Darwin" ]]; then
     brew install ripgrep
   else
-    sudo apt install -y ripgrep
+    apt_noninteractive install ripgrep
   fi
   log_success "Ripgrep installed"
 else
@@ -96,7 +107,7 @@ if [[ ${#missing_build_tools[@]} -gt 0 ]]; then
       xcode-select --install || true
       log_success "Requested Xcode Command Line Tools install"
     else
-      sudo apt install -y "${missing_build_tools[@]}"
+      apt_noninteractive install "${missing_build_tools[@]}"
       log_success "Installed build tools: ${missing_build_tools[*]}"
     fi
   else

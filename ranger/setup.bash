@@ -9,13 +9,24 @@ log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TA
 log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
 log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
+# apt on its own still stops for debconf and for needrestart's full-screen
+# "which services should be restarted?" dialog, neither of which -y answers.
+# NEEDRESTART_MODE=a restarts affected services silently; NEEDRESTART_SUSPEND
+# covers older needrestart releases that ignore it.
+apt_noninteractive() {
+  sudo env DEBIAN_FRONTEND=noninteractive \
+           NEEDRESTART_MODE=a \
+           NEEDRESTART_SUSPEND=1 \
+    apt-get -y -o Dpkg::Options::=--force-confold "$@"
+}
+
 log_section "Installing Ranger"
 if ! command -v ranger &> /dev/null; then
   log_warn "Ranger not found, installing..."
   if [[ "$(uname)" == "Darwin" ]]; then
     brew install ranger
   else
-    sudo apt install -y ranger
+    apt_noninteractive install ranger
   fi
   log_success "Ranger installed"
 else

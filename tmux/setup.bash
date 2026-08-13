@@ -9,20 +9,31 @@ log_success() { printf '\033[01;34m[%s]\033[00m \033[00;32m%s\033[00m\n'    "$TA
 log_warn()    { printf '\033[01;34m[%s]\033[00m \033[00;33m%s\033[00m\n'    "$TAG" "$*"; }
 log_error()   { printf '\033[01;34m[%s]\033[00m \033[00;31m%s\033[00m\n'    "$TAG" "$*"; }
 
+# apt on its own still stops for debconf and for needrestart's full-screen
+# "which services should be restarted?" dialog, neither of which -y answers.
+# NEEDRESTART_MODE=a restarts affected services silently; NEEDRESTART_SUSPEND
+# covers older needrestart releases that ignore it.
+apt_noninteractive() {
+  sudo env DEBIAN_FRONTEND=noninteractive \
+           NEEDRESTART_MODE=a \
+           NEEDRESTART_SUSPEND=1 \
+    apt-get -y -o Dpkg::Options::=--force-confold "$@"
+}
+
 log_section "Installing Tmux"
 if command -v tmux &> /dev/null; then
   log_warn "Tmux already installed, removing..."
   if [[ "$(uname)" == "Darwin" ]]; then
     brew uninstall tmux
   else
-    sudo apt remove -y tmux
+    apt_noninteractive remove tmux
   fi
 fi
 log_warn "Installing Tmux..."
 if [[ "$(uname)" == "Darwin" ]]; then
   brew install tmux
 else
-  sudo apt install -y libevent-dev libncurses-dev build-essential bison pkg-config
+  apt_noninteractive install libevent-dev libncurses-dev build-essential bison pkg-config
   TMUX_VERSION="3.6"
   TMUX_TAR="tmux-${TMUX_VERSION}.tar.gz"
   curl -fsSL "https://github.com/tmux/tmux/releases/download/${TMUX_VERSION}/${TMUX_TAR}" -o "/tmp/${TMUX_TAR}"

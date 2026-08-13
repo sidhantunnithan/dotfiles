@@ -229,16 +229,16 @@ apt_noninteractive() {
   sudo env DEBIAN_FRONTEND=noninteractive \
            NEEDRESTART_MODE=a \
            NEEDRESTART_SUSPEND=1 \
-    apt-get install -y -o Dpkg::Options::=--force-confold "$@"
+    apt-get -y -o Dpkg::Options::=--force-confold "$@"
 }
 
 # Ubuntu 24.04+ renamed p7zip-full to 7zip; try the modern name first.
 apt_install() {
   local pkg="$1"
   if [[ "$pkg" == "7zip" ]]; then
-    apt_noninteractive 7zip || apt_noninteractive p7zip-full
+    apt_noninteractive install 7zip || apt_noninteractive install p7zip-full
   else
-    apt_noninteractive "$pkg"
+    apt_noninteractive install "$pkg"
   fi
 }
 
