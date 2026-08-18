@@ -50,9 +50,10 @@ version_le() {
 # the tty (bypassing the pipe) and then blocks on "Press <Enter> to continue".
 # </dev/null guarantees the probe can never wait for a keypress.
 yazi_version() {
+  local bin="${1:-yazi}"
   local probe_dir version
   probe_dir="$(mktemp -d)"
-  version="$(XDG_CONFIG_HOME="$probe_dir" yazi --version </dev/null 2>/dev/null |
+  version="$(XDG_CONFIG_HOME="$probe_dir" "$bin" --version </dev/null 2>/dev/null |
     sed -n 's/^Yazi \([0-9][0-9.]*\).*/\1/p')" || true
   rm -rf "$probe_dir"
   printf '%s\n' "$version"
@@ -150,7 +151,7 @@ resolve_yazi_linux_release() {
 }
 
 install_yazi_linux() {
-  local arch install_dir tmp_dir tag asset archive source_dir
+  local arch install_dir tmp_dir tag asset archive source_dir installed
 
   case "$(uname -m)" in
     aarch64|arm64) arch="aarch64" ;;
@@ -164,9 +165,25 @@ install_yazi_linux() {
   read -r tag asset <<< "$(resolve_yazi_linux_release "$arch")"
   archive="${asset}"
   install_dir="${HOME}/.local/bin"
-  tmp_dir="$(mktemp -d)"
 
   log_section "Installing Yazi binaries"
+
+  # Both binaries come out of the same archive, so a missing `ya` means the
+  # install is incomplete no matter what `yazi --version` reports. The probe
+  # targets $install_dir directly: a distro-packaged yazi elsewhere on PATH
+  # says nothing about the copy this script manages.
+  export PATH="$install_dir:$PATH"
+  hash -r 2>/dev/null || true
+  if [[ -x "$install_dir/yazi" && -x "$install_dir/ya" ]]; then
+    installed="$(yazi_version "$install_dir/yazi")"
+    if [[ -n "$installed" && "v${installed}" == "$tag" ]]; then
+      log_success "Yazi ${tag} already installed in ${install_dir}"
+      return 0
+    fi
+    log_warn "Yazi ${installed:-unknown} installed, expected ${tag}, reinstalling"
+  fi
+
+  tmp_dir="$(mktemp -d)"
   mkdir -p "$install_dir"
   rm -f "$install_dir/yazi" "$install_dir/ya"
   curl -fsSL "https://github.com/${YAZI_GITHUB_REPO}/releases/download/${tag}/${archive}" -o "$tmp_dir/$archive"
@@ -174,7 +191,6 @@ install_yazi_linux() {
   source_dir="$tmp_dir/${archive%.zip}"
   install -m 0755 "$source_dir/yazi" "$install_dir/yazi"
   install -m 0755 "$source_dir/ya" "$install_dir/ya"
-  export PATH="$install_dir:$PATH"
   hash -r 2>/dev/null || true
 
   mkdir -p "$tmp_dir/xdg"
