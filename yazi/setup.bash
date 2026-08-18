@@ -13,6 +13,7 @@ YAZI_GITHUB_REPO="sxyazi/yazi"
 YAZI_UBUNTU_FALLBACK_VERSION="v26.1.22"
 COMPRESS_MIN_YAZI_VERSION="26.5.6"
 COMPRESS_LEGACY_REV="46a6b9f02ff2f8aced466a1f01a3fe241f1cd45f"
+BOOKMARKS_PKG="sidhantunnithan/bookmarks"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 require_cmd() {
@@ -286,8 +287,8 @@ log_success "Cleared managed plugin/flavor directories"
 
 log_section "Installing Yazi plugins"
 require_cmd ya
-install_ya_pkg sidhantunnithan/bookmarks
-log_success "Installed plugin: sidhantunnithan/bookmarks"
+install_ya_pkg "$BOOKMARKS_PKG"
+log_success "Installed plugin: $BOOKMARKS_PKG"
 install_compress_plugin
 
 log_section "Installing Yazi flavor"
@@ -297,6 +298,18 @@ log_success "Installed flavor: catppuccin-mocha"
 log_section "Syncing Yazi packages"
 ya pkg install
 log_success "Yazi packages synced"
+
+# bookmarks.yazi is our own fork, so it tracks main rather than the revision
+# pinned in package.toml. `ya pkg upgrade` re-resolves to the latest commit and
+# rewrites the pin; that is how ya pkg expresses branch tracking, as it has no
+# ref/branch syntax of its own. Non-fatal: `ya pkg install` above already
+# deployed the pinned revision, which is a fine fallback when GitHub is
+# unreachable.
+if ya pkg upgrade "$BOOKMARKS_PKG"; then
+  log_success "Tracking latest main: $BOOKMARKS_PKG"
+else
+  log_warn "Could not upgrade $BOOKMARKS_PKG, keeping the revision pinned in package.toml"
+fi
 
 if [ ! -f "$YAZI_CONFIG_DIR/flavors/catppuccin-mocha.yazi/flavor.toml" ]; then
   log_warn "Flavor file still missing after install: $YAZI_CONFIG_DIR/flavors/catppuccin-mocha.yazi/flavor.toml"
