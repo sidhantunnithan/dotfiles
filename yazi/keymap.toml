@@ -17,7 +17,7 @@ prepend_keymap = [
   { on = [ "g", "r" ], run = "cd /", desc = "cd to root" },
   { on = "T",          run = "plugin compress 'tar.gz'",    desc = "Compress to .tar.gz" },
   { on = "C",          run = "plugin compress",             desc = "Compress (name decides format)" },
-  { on = "E",          run = 'shell -- ya pub extract --list "$@"', desc = "Extract here" },
+  { on = "E",          run = 'shell -- ya pub extract --list %s', desc = "Extract here" },
   { on = "m",          run = "plugin bookmarks save",       desc = "Save bookmark" },
   { on = "`",          run = "plugin bookmarks jump",       desc = "Jump to bookmark" },
   { on = [ "b", "d" ], run = "plugin bookmarks delete",     desc = "Delete bookmark" },

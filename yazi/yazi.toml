@@ -4,7 +4,7 @@ show_hidden = true
 
 [opener]
 edit = [
-  { run = 'nvim "$@"', block = true, for = "unix" },
+  { run = 'nvim %s', block = true, for = "unix" },
 ]
 
 [open]
