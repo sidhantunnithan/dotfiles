@@ -286,8 +286,8 @@ log_success "Cleared managed plugin/flavor directories"
 
 log_section "Installing Yazi plugins"
 require_cmd ya
-install_ya_pkg dedukun/bookmarks
-log_success "Installed plugin: dedukun/bookmarks"
+install_ya_pkg sidhantunnithan/bookmarks
+log_success "Installed plugin: sidhantunnithan/bookmarks"
 install_compress_plugin
 
 log_section "Installing Yazi flavor"
