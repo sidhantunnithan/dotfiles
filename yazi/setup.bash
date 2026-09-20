@@ -111,6 +111,116 @@ install_compress_plugin() {
   log_success "Installed plugin: KKV9/compress (legacy pin)"
 }
 
+# Upstream compress.yazi opens its "Create archive:" box empty: it computes a
+# default name only *after* the dialog returns, and only uses it when an empty
+# string was submitted. This rewrites main.lua so the name is computed up front
+# and passed as `value`, pre-filling the box -- file name without its last
+# extension, directory name as-is, or the cwd name for a multi-file selection.
+#
+# Applied as a post-install patch rather than a vendored copy so the plugin keeps
+# tracking upstream. The eight anchors below are byte-identical in the pinned and
+# the legacy revisions, so one patch covers both. If upstream ever rewrites those
+# blocks the anchor count stops matching and the file is left untouched: the
+# plugin still works, it just loses the autofill.
+patch_compress_autofill() {
+  local file tmp
+  file="$YAZI_CONFIG_DIR/plugins/compress.yazi/main.lua"
+
+  if [ ! -f "$file" ]; then
+    log_warn "compress.yazi/main.lua not found, skipping autofill patch"
+    return 0
+  fi
+
+  if grep -q "value = default_name," "$file"; then
+    log_success "Archive-name autofill already applied"
+    return 0
+  fi
+
+  tmp="$(mktemp)"
+
+  if awk '
+    BEGIN { hits = 0 }
+
+    # 1. declare the flag before the hovered branch
+    $0 == "\tif #paths == 0 and tab.current.hovered then" {
+      hits++
+      print "\tlocal is_single_dir = false"
+      print; next
+    }
+
+    # 2. a hovered target knows its own type
+    $0 == "\t\tnames[1] = tostring(tab.current.hovered.name)" {
+      hits++
+      print
+      print "\t\tis_single_dir = tab.current.hovered.cha.is_dir or false"
+      next
+    }
+
+    # 3. a single *selected* target never hits the branch above, so look its
+    #    type up in the directory listing; then hand the flag back to entry()
+    $0 == "\treturn path_fnames, names, tostring(tab.current.cwd)" {
+      hits++
+      print "\tif #names == 1 and not is_single_dir then"
+      print "\t\tfor _, f in ipairs(tab.current.files) do"
+      print "\t\t\tif tostring(f.name) == names[1] then"
+      print "\t\t\t\tis_single_dir = f.cha.is_dir or false"
+      print "\t\t\t\tbreak"
+      print "\t\t\tend"
+      print "\t\tend"
+      print "\tend"
+      print ""
+      print "\treturn path_fnames, names, tostring(tab.current.cwd), is_single_dir"
+      next
+    }
+
+    # 4. receive it
+    $0 == "\t\tlocal path_fnames, fnames, output_dir = selected_or_hovered()" {
+      hits++
+      print "\t\tlocal path_fnames, fnames, output_dir, is_single_dir = selected_or_hovered()"
+      next
+    }
+
+    # 5. compute the default name *before* the dialog opens
+    $0 == "\t\t-- Get archive filename" {
+      hits++
+      print "\t\t-- Determine the default name for the archive up front, so it can"
+      print "\t\t-- pre-fill the input box instead of only applying on empty submit."
+      print "\t\tlocal default_name"
+      print "\t\tif #fnames == 1 then"
+      print "\t\t\t-- drop a file'"'"'s last extension; leave directories and dotfiles"
+      print "\t\t\t-- such as .env whole, as they have no name before the dot."
+      print "\t\t\tdefault_name = is_single_dir and fnames[1] or (fnames[1]:match(\"^(.+)%.[^.]+$\") or fnames[1])"
+      print "\t\telse"
+      print "\t\t\tdefault_name = Url(output_dir).name"
+      print "\t\tend"
+      print ""
+      print; next
+    }
+
+    # 6. pre-fill it
+    $0 == "\t\t\ttitle = \"Create archive:\"," {
+      hits++
+      print
+      print "\t\t\tvalue = default_name,"
+      next
+    }
+
+    # 7/8. drop the old post-dialog computation, now redundant
+    $0 == "\t\t-- Determine the default name for the archive" { hits++; next }
+    $0 == "\t\tlocal default_name = #fnames == 1 and fnames[1] or Url(output_dir).name" { hits++; next }
+
+    { print }
+
+    END { if (hits != 8) { printf "anchors matched: %d of 8\n", hits > "/dev/stderr"; exit 1 } }
+  ' "$file" > "$tmp"; then
+    mv "$tmp" "$file"
+    log_success "Patched compress.yazi: archive name autofills in the dialog"
+  else
+    rm -f "$tmp"
+    log_warn "compress.yazi/main.lua does not match the expected layout, leaving it unpatched (no archive-name autofill)"
+  fi
+}
+
 detect_ubuntu_version() {
   if [[ -r /etc/os-release ]]; then
     # shellcheck disable=SC1091
@@ -326,6 +436,9 @@ if ya pkg upgrade "$BOOKMARKS_PKG"; then
 else
   log_warn "Could not upgrade $BOOKMARKS_PKG, keeping the revision pinned in package.toml"
 fi
+
+log_section "Patching compress.yazi"
+patch_compress_autofill
 
 if [ ! -f "$YAZI_CONFIG_DIR/flavors/catppuccin-mocha.yazi/flavor.toml" ]; then
   log_warn "Flavor file still missing after install: $YAZI_CONFIG_DIR/flavors/catppuccin-mocha.yazi/flavor.toml"
