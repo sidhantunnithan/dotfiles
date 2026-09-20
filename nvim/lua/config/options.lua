@@ -16,9 +16,17 @@ vim.opt.signcolumn = "yes" -- try to be smart (increase the indenting level afte
 vim.opt.hlsearch = false -- disable highlights results from your previous search
 
 -- Clipboard: use OSC52 over SSH so yanks can cross remote tmux -> local tmux -> terminal.
+-- Paste deliberately never queries the terminal: osc52.paste() writes an OSC 52 *read*
+-- request, and tmux answers it by echoing the whole clipboard back as base64 on the
+-- pane's stdin. Unconsumed, those bytes render as garbage and are then read as
+-- keystrokes, which is how base64 ended up inside the buffer. Return the unnamed
+-- register instead -- no outbound query, no inbound burst.
 if vim.env.SSH_TTY ~= nil then
   local ok, osc52 = pcall(require, "vim.ui.clipboard.osc52")
   if ok then
+    local function paste()
+      return vim.split(vim.fn.getreg(""), "\n")
+    end
     vim.g.clipboard = {
       name = "OSC 52",
       copy = {
@@ -26,8 +34,8 @@ if vim.env.SSH_TTY ~= nil then
         ["*"] = osc52.copy("*"),
       },
       paste = {
-        ["+"] = osc52.paste("+"),
-        ["*"] = osc52.paste("*"),
+        ["+"] = paste,
+        ["*"] = paste,
       },
     }
     -- Note: clipboard is intentionally NOT set to "unnamedplus" so that normal
