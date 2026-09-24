@@ -230,6 +230,7 @@ cat >> "$RC" << 'EOF'
 
 function ss() {
     host=$(cat /etc/hosts | awk '/# End Checkpoint/{exit} p && $0 != "" {print} /# Checkpoint/{p=1}' | sed "s/.*\ //" | fzf)
+    [[ -n $TMUX && -n $host ]] && tmux rename-window "$host"
     ssh -v "$host"
 }
 EOF
