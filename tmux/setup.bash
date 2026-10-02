@@ -60,6 +60,13 @@ mkdir -p ~/.config/tmux
 curl -fsSL "$DOTFILES_RAW/tmux/.tmux.conf" -o ~/.config/tmux/tmux.conf
 log_success "Tmux configuration file downloaded"
 
+# tpm only fetches the @plugin entries when asked (prefix + I); do it here so
+# resurrect/continuum are actually present. Reads the plugin list from the
+# config above, so it must run after the download.
+log_section "Installing Tmux plugins"
+~/.config/tmux/plugins/tpm/bin/install_plugins
+log_success "Tmux plugins installed"
+
 if tmux list-sessions &> /dev/null; then
   tmux source-file ~/.config/tmux/tmux.conf
   log_success "Tmux configuration reloaded"
