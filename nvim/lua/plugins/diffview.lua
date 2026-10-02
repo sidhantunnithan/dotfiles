@@ -3,7 +3,7 @@ return {
 	dependencies = { "nvim-tree/nvim-web-devicons" },
 	cmd = { "DiffviewOpen", "DiffviewFileHistory" },
 	keys = {
-		{ "<leader>gd", function()
+		{ "<leader>gD", function()
 			local lib = require("diffview.lib")
 			if lib.get_current_view() then
 				vim.cmd("DiffviewClose")
