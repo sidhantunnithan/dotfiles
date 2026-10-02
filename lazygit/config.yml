@@ -3,9 +3,9 @@ gui:
   # 12 is roughly half a page on a typical terminal height.
   scrollHeight: 12
 git:
-  pagers:
+  diffRenderers:
     - colorArg: always
-      pager: delta --config /dev/null --paging=never --syntax-theme=OneHalfDark --line-numbers --hunk-header-style=syntax --hunk-header-decoration-style="blue ul" --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+      command: delta --config /dev/null --paging=never --syntax-theme=OneHalfDark --line-numbers --hunk-header-style=syntax --hunk-header-decoration-style="blue ul" --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
   prune: true
 customCommands:
   - key: "G"
