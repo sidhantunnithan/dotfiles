@@ -21,27 +21,36 @@ apt_noninteractive() {
 }
 
 log_section "Installing Tmux"
-if command -v tmux &> /dev/null; then
-  log_warn "Tmux already installed, removing..."
-  if [[ "$(uname)" == "Darwin" ]]; then
-    brew uninstall tmux
-  else
-    apt_noninteractive remove tmux
-  fi
-fi
-log_warn "Installing Tmux..."
+# macOS tracks brew's current stable release; Linux builds a pinned version.
 if [[ "$(uname)" == "Darwin" ]]; then
-  brew install tmux
+  TMUX_VERSION="$(brew info tmux | awk 'NR == 1 { print $4 }')"
 else
-  apt_noninteractive install libevent-dev libncurses-dev build-essential bison pkg-config
   TMUX_VERSION="3.6"
-  TMUX_TAR="tmux-${TMUX_VERSION}.tar.gz"
-  curl -fsSL "https://github.com/tmux/tmux/releases/download/${TMUX_VERSION}/${TMUX_TAR}" -o "/tmp/${TMUX_TAR}"
-  tar -xzf "/tmp/${TMUX_TAR}" -C /tmp
-  (cd "/tmp/tmux-${TMUX_VERSION}" && ./configure && make && sudo make install)
-  rm -rf "/tmp/${TMUX_TAR}" "/tmp/tmux-${TMUX_VERSION}"
 fi
-log_success "Tmux installed"
+if [[ "$(tmux -V 2> /dev/null)" == "tmux ${TMUX_VERSION}" ]]; then
+  log_success "Tmux ${TMUX_VERSION} already installed, skipping"
+else
+  if command -v tmux &> /dev/null; then
+    log_warn "Tmux $(tmux -V) installed, want ${TMUX_VERSION}, removing..."
+    if [[ "$(uname)" == "Darwin" ]]; then
+      brew uninstall tmux
+    else
+      apt_noninteractive remove tmux
+    fi
+  fi
+  log_warn "Installing Tmux ${TMUX_VERSION}..."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    brew install tmux
+  else
+    apt_noninteractive install libevent-dev libncurses-dev build-essential bison pkg-config
+    TMUX_TAR="tmux-${TMUX_VERSION}.tar.gz"
+    curl -fsSL "https://github.com/tmux/tmux/releases/download/${TMUX_VERSION}/${TMUX_TAR}" -o "/tmp/${TMUX_TAR}"
+    tar -xzf "/tmp/${TMUX_TAR}" -C /tmp
+    (cd "/tmp/tmux-${TMUX_VERSION}" && ./configure && make && sudo make install)
+    rm -rf "/tmp/${TMUX_TAR}" "/tmp/tmux-${TMUX_VERSION}"
+  fi
+  log_success "Tmux installed"
+fi
 
 log_section "Installing Tmux Plugin Manager (TPM)"
 rm -rf ~/.config/tmux/plugins/tpm
