@@ -21,12 +21,9 @@ apt_noninteractive() {
 }
 
 log_section "Installing Tmux"
-# macOS tracks brew's current stable release; Linux builds a pinned version.
-if [[ "$(uname)" == "Darwin" ]]; then
-  TMUX_VERSION="$(brew info tmux | awk 'NR == 1 { print $4 }')"
-else
-  TMUX_VERSION="3.6"
-fi
+# Pinned to brew's current stable release; Linux builds the same version from
+# source. Bump this when brew moves on, or macOS will reinstall on every run.
+TMUX_VERSION="3.8"
 if [[ "$(tmux -V 2> /dev/null)" == "tmux ${TMUX_VERSION}" ]]; then
   log_success "Tmux ${TMUX_VERSION} already installed, skipping"
 else
