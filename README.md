@@ -22,6 +22,24 @@ curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/alacr
 curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/kitty/setup.bash | bash
 ```
 
+### JetBrainsMono Nerd Font
+
+Installed or upgraded to the latest release by the kitty and alacritty setups;
+it can also be run on its own.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/fonts/nerd-font.bash | bash
+```
+
+### STIX Two Math (Linux)
+
+Fallback font for symbols JetBrains Mono lacks (e.g. Claude Code's `⏵`). macOS
+ships the same file; the kitty and alacritty setups install it on Linux.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/fonts/stix-math.bash | bash
+```
+
 ### Kitty terminfo
 
 Installs the `xterm-kitty` terminfo entry so `clear`, `tput` and curses apps work
