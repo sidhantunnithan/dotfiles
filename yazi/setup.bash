@@ -411,6 +411,16 @@ rm -rf \
   "$YAZI_CONFIG_DIR/flavors/catppuccin-mocha.yazi"
 log_success "Cleared managed plugin/flavor directories"
 
+# ya pkg reuses the git clones it keeps in its cache, so a clone made by an
+# older ya can break a newer one. Older clones checked out real
+# symlinks (yazi-rs/plugins' LICENSE -> ../LICENSE), while newer ya reads a
+# symlink as a git blob holding the target path. It then takes the whole
+# license text as a path and fails with "failed to resolve Git symlink target
+# ... File name too long". The cache is only a download cache, so it is
+# cleared every run and ya re-clones what it needs.
+rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/yazi/packages"
+log_success "Cleared ya pkg cache"
+
 log_section "Installing Yazi plugins"
 require_cmd ya
 install_ya_pkg "$BOOKMARKS_PKG"
