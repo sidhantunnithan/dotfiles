@@ -4,12 +4,6 @@
 
 Each tool can be installed independently via `curl | bash`:
 
-### Homebrew packages
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/brew/setup.bash | bash
-```
-
 ### Alacritty
 
 ```bash
