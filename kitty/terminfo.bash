@@ -66,12 +66,15 @@ install_from_source() {
 
 # The kitty.app bundle ships a pre-compiled terminfo tree, so a local install can
 # be fixed without network access and stays in sync with the installed kitty.
+# macOS keeps it under Contents/Resources; the Linux installer (~/.local/kitty.app)
+# under share/.
 install_from_kitty_app() {
-  local candidate resolved bundle_terminfo=""
+  local candidate bin_dir bundle_terminfo=""
 
   for candidate in \
     /Applications/kitty.app/Contents/Resources/kitty/terminfo \
-    "$HOME/Applications/kitty.app/Contents/Resources/kitty/terminfo"; do
+    "$HOME/Applications/kitty.app/Contents/Resources/kitty/terminfo" \
+    "$HOME/.local/kitty.app/share/terminfo"; do
     if [[ -d "$candidate" ]]; then
       bundle_terminfo="$candidate"
       break
@@ -79,10 +82,19 @@ install_from_kitty_app() {
   done
 
   if [[ -z "$bundle_terminfo" ]] && command -v kitty &> /dev/null; then
-    # /Applications/kitty.app/Contents/MacOS/kitty → .../Contents/Resources/kitty/terminfo
-    resolved="$(cd "$(dirname "$(command -v kitty)")" && pwd)"
-    candidate="$(dirname "$resolved")/Resources/kitty/terminfo"
-    [[ -d "$candidate" ]] && bundle_terminfo="$candidate"
+    # kitty on PATH is usually a symlink (brew, ~/.local/bin), so resolve it to
+    # the real binary first; cd/pwd alone don't follow it.
+    #   .../Contents/MacOS/kitty → .../Contents/Resources/kitty/terminfo
+    #   ~/.local/kitty.app/bin/kitty → ~/.local/kitty.app/share/terminfo
+    bin_dir="$(dirname "$(readlink -f "$(command -v kitty)")")"
+    for candidate in \
+      "$(dirname "$bin_dir")/Resources/kitty/terminfo" \
+      "$(dirname "$bin_dir")/share/terminfo"; do
+      if [[ -d "$candidate" ]]; then
+        bundle_terminfo="$candidate"
+        break
+      fi
+    done
   fi
 
   [[ -n "$bundle_terminfo" ]] || return 1
@@ -108,6 +120,10 @@ install_macos() {
 
 install_linux() {
   local sudo_cmd
+
+  if install_from_kitty_app; then
+    return 0
+  fi
 
   if ! command -v apt-get &> /dev/null; then
     log_warn "apt-get not found, falling back to a user-local install"
