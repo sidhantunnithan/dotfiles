@@ -92,20 +92,6 @@ else
   log_success "fzf already installed"
 fi
 
-log_section "Setting up Bash aliases"
-ALIAS_MARKER="# dotfiles: bash aliases"
-if ! grep -q "$ALIAS_MARKER" "$RC"; then
-  cat >> "$RC" <<'EOF'
-
-# dotfiles: bash aliases
-alias ranger=". ranger"
-alias rn="ranger"
-EOF
-  log_success "Bash aliases added"
-else
-  log_success "Bash aliases already present"
-fi
-
 log_section "Setting up ss() SSH host picker"
 upsert_function "$RC" "ss"
 cat >> "$RC" << 'EOF'

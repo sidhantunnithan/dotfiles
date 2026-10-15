@@ -188,19 +188,6 @@ if grep -q 'source \$ZSH/oh-my-zsh.sh' "$RC"; then
   fi
 fi
 
-log_section "Setting up Zsh aliases"
-ALIAS_MARKER="# dotfiles: zsh aliases"
-if ! grep -q "$ALIAS_MARKER" "$RC"; then
-  cat >> "$RC" <<'EOF'
-
-# dotfiles: zsh aliases
-alias rn=". ranger"
-EOF
-  log_success "Zsh aliases added"
-else
-  log_success "Zsh aliases already present"
-fi
-
 log_section "Setting up EDITOR"
 EDITOR_MARKER="# dotfiles: EDITOR setup"
 if ! grep -q "$EDITOR_MARKER" "$RC"; then

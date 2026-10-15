@@ -39,6 +39,21 @@ mkdir -p ~/.config/ranger
 curl -fsSL "$DOTFILES_RAW/ranger/rc.conf" -o ~/.config/ranger/rc.conf
 log_success "Ranger configuration file downloaded"
 
+log_section "Setting up Ranger aliases"
+# Sourcing ranger (". ranger") lets the shell follow ranger's last directory on exit.
+ALIAS_MARKER="# dotfiles: ranger aliases"
+for rc in ~/.bashrc ~/.zshrc; do
+  if [ -f "$rc" ] && ! grep -q "$ALIAS_MARKER" "$rc"; then
+    cat >> "$rc" <<'EOF'
+
+# dotfiles: ranger aliases
+alias ranger=". ranger"
+alias rn="ranger"
+EOF
+    log_success "Ranger aliases added to $rc"
+  fi
+done
+
 log_section "Setting up EDITOR environment variable"
 EDITOR_MARKER="# dotfiles: EDITOR setup"
 for rc in ~/.bashrc ~/.zshrc; do
