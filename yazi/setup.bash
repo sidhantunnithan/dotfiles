@@ -459,23 +459,20 @@ for plugin in bookmarks compress; do
 done
 
 log_section "Setting up f() yazi wrapper"
-if [[ "$(uname)" == "Darwin" ]]; then
-  RC_FILES=(~/.zshrc)
-else
-  RC_FILES=(~/.bashrc)
-fi
+RC_FILES=(~/.bashrc ~/.zshrc)
 
 if [[ "$(uname)" != "Darwin" ]]; then
-  rc=~/.bashrc
-  if [ -f "$rc" ]; then
-    if grep -q "^export TERM=" "$rc"; then
-      sed -i 's/^export TERM=.*/export TERM=xterm-kitty/' "$rc"
-      log_success "Updated TERM=xterm-kitty in $rc"
-    else
-      echo $'\nexport TERM=xterm-kitty' >> "$rc"
-      log_success "Set TERM=xterm-kitty in $rc"
+  for rc in "${RC_FILES[@]}"; do
+    if [ -f "$rc" ]; then
+      if grep -q "^export TERM=" "$rc"; then
+        sed -i 's/^export TERM=.*/export TERM=xterm-kitty/' "$rc"
+        log_success "Updated TERM=xterm-kitty in $rc"
+      else
+        echo $'\nexport TERM=xterm-kitty' >> "$rc"
+        log_success "Set TERM=xterm-kitty in $rc"
+      fi
     fi
-  fi
+  done
 fi
 
 for rc in "${RC_FILES[@]}"; do
@@ -508,10 +505,5 @@ EOF
   fi
 done
 
-if [[ "$(uname)" == "Darwin" ]]; then
-  log_warn "Run the following or open a new terminal to use the f() command:"
-  log "  source ~/.zshrc"
-else
-  log_warn "Run the following or open a new terminal to use the f() command:"
-  log "  source ~/.bashrc"
-fi
+log_warn "Run the following (or open a new terminal) to use the f() command:"
+log "  source ~/.zshrc   # or ~/.bashrc"

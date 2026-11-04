@@ -52,13 +52,16 @@ else
   cd -
   log_success "Neovim installed from latest release"
 
-  # Add to PATH in bashrc if not already present
-  if ! grep -q "export PATH=.*$NVIM_DIR/bin" ~/.bashrc; then
-    echo "export PATH=\"\$PATH:/opt/$NVIM_DIR/bin\"" >> ~/.bashrc
-    log_success "Neovim PATH added to ~/.bashrc"
-  else
-    log_success "Neovim PATH already in ~/.bashrc"
-  fi
+  # Add to PATH in each existing shell rc if not already present
+  for rc in ~/.bashrc ~/.zshrc; do
+    [[ -f "$rc" ]] || continue
+    if ! grep -q "export PATH=.*$NVIM_DIR/bin" "$rc"; then
+      echo "export PATH=\"\$PATH:/opt/$NVIM_DIR/bin\"" >> "$rc"
+      log_success "Neovim PATH added to $rc"
+    else
+      log_success "Neovim PATH already in $rc"
+    fi
+  done
 fi
 
 log_section "Configuring Neovim"
