@@ -14,7 +14,7 @@ YAZI_UBUNTU_FALLBACK_VERSION="v26.1.22"
 COMPRESS_MIN_YAZI_VERSION="26.5.6"
 COMPRESS_LEGACY_REV="46a6b9f02ff2f8aced466a1f01a3fe241f1cd45f"
 BOOKMARKS_PKG="sidhantunnithan/bookmarks"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_RAW="https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main"
 
 require_cmd() {
   local cmd="$1"
@@ -314,11 +314,7 @@ copy_managed_file() {
   local rel_path="$1"
   local destination="$2"
 
-  if [[ -f "${SCRIPT_DIR}/${rel_path}" ]]; then
-    cp "${SCRIPT_DIR}/${rel_path}" "$destination"
-  else
-    curl -fsSL "https://raw.githubusercontent.com/sidhantunnithan/dotfiles/main/yazi/${rel_path}" -o "$destination"
-  fi
+  curl -fsSL "$DOTFILES_RAW/yazi/${rel_path}" -o "$destination"
 }
 
 # Dependencies are listed as "package[:binary]" because a package name does not
